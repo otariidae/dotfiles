@@ -5,9 +5,17 @@ else
 endif
 scriptencoding utf-8
 
+"関数 {{{
+function! s:isCmdExe() abort
+  return has("win32") && !has("gui_running")
+endfunction
+"}}}
+
 "設定 {{{
-if has("unix")
+"色
+if !s:isCmdExe()
   set t_Co=256
+  set termguicolors
 endif
 "ステータスバー
 set laststatus=2
@@ -138,12 +146,6 @@ nnoremap <Down> <Nop>
 nnoremap <Left> <Nop>
 "kaoriyaプラグインから移植
 command! -nargs=0 CdCurrent cd %:p:h
-"}}}
-
-"関数 {{{
-function! s:isCmdExe() abort
-  return has("win32") && !has("gui_running")
-endfunction
 "}}}
 
 "dein.vim {{{
