@@ -148,73 +148,47 @@ nnoremap <Left> <Nop>
 command! -nargs=0 CdCurrent cd %:p:h
 "}}}
 
-"dein.vim {{{
-let g:dein#enable_name_conversion = 1
-let s:base_path = "~/.vim/bundle"
-if has("vim_starting")
-  execute "set runtimepath+=".s:base_path."/repos/github.com/Shougo/dein.vim/"
-endif
+"minpac {{{
+packadd minpac
+if exists("*minpac#init")
 
-if dein#load_state(s:base_path)
-  call dein#begin(s:base_path)
+  call minpac#init()
 
-  call dein#add("Shougo/dein.vim")
+  call minpac#add("k-takata/minpac", {
+        \ "type": "opt"
+        \})
 
   if !s:isCmdExe()
-    call dein#add("w0ng/vim-hybrid", {
+    call minpac#add("w0ng/vim-hybrid", {
           \ "frozen": 1
           \})
   endif
 
   "シンプルな履歴管理
-  call dein#add("pavoljuhas/oldfilesearch.vim", {
-        \ "on_cmd": "OldFileSearch"
-        \})
+  call minpac#add("pavoljuhas/oldfilesearch.vim")
   "括弧補完
-  call dein#add("cohama/lexima.vim")
+  call minpac#add("cohama/lexima.vim")
   "HTMLのシンタックス
-  call dein#add("othree/html5.vim", {
-        \ "on_ft": ["html", "pug"]
-        \})
+  call minpac#add("othree/html5.vim")
   "pugのシンタックス
-  call dein#add("digitaltoad/vim-pug", {
-        \ "on_ft": "pug"
-        \})
+  call minpac#add("digitaltoad/vim-pug")
   "JavaScript用シンタックス
-  call dein#add("othree/yajs.vim", {
-        \ "on_ft": "javascript"
-        \})
-  call dein#add("guileen/vim-node-dict", {
-        \ "rtp": "",
-        \ "frozen": 1
+  call minpac#add("othree/yajs.vim")
+  call minpac#add("guileen/vim-node-dict", {
+        \ "type": "opt"
         \})
   "かっこいいバー
-  call dein#add("itchyny/lightline.vim")
+  call minpac#add("itchyny/lightline.vim")
   "editorconfig
-  call dein#add("editorconfig/editorconfig-vim", {
-        \ "on_event": ["BufNewFile", "BufRead"]
-        \})
+  call minpac#add("editorconfig/editorconfig-vim")
   "コメントを楽にする
-  call dein#add("tomtom/tcomment_vim", {
-        \ "on_event": ["BufNewFile", "BufRead"]
-        \})
+  call minpac#add("tomtom/tcomment_vim")
   "標準プラグインより速いらしいので
-  "BufNewFile, BufReadで読み込みバグ
-  call dein#add("itchyny/vim-parenmatch", {
-        \ "on_event": "VIMEnter"
-        \})
+  call minpac#add("itchyny/vim-parenmatch")
   "git
-  call dein#add("airblade/vim-gitgutter", {
-        \ "on_event": ["BufNewFile", "BufRead"]
-        \})
+  call minpac#add("airblade/vim-gitgutter")
   "不要な空白
-  call dein#add("bronson/vim-trailing-whitespace", {
-        \ "on_event": ["BufNewFile", "BufRead"]
-        \})
-
-  call dein#end()
-  call dein#save_state()
-
+  call minpac#add("bronson/vim-trailing-whitespace")
 endif
 "}}}
 
@@ -222,7 +196,7 @@ filetype plugin indent on
 syntax on
 
 "lightline {{{
-if dein#is_sourced("lightline")
+if exists("*minpac#init")
   let g:lightline = {
         \ "active": {
         \   "left": [
@@ -342,13 +316,13 @@ endif
 "}}}
 
 "html5 {{{
-if dein#is_sourced("html5")
+if exists("*minpac#init")
   let g:html5_rdfa_attributes_complete = 0
 endif
 "}}}
 
 "tcomment {{{
-if dein#is_sourced("tcomment")
+if exists("*minpac#init")
   "<C-_>は使わない(insertモードで使わない)
   let g:tcommentMapLeader1 = ""
   "<Leader>を使わない(困る)
@@ -356,7 +330,7 @@ if dein#is_sourced("tcomment")
 endif
 "}}}
 
-if dein#is_sourced("hybrid")
+if exists("*minpac#init")
   augroup colorscheme
     autocmd!
     autocmd VIMEnter * nested colorscheme hybrid
