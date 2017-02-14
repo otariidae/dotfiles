@@ -330,7 +330,7 @@ if exists("*minpac#init")
 endif
 "}}}
 
-if exists("*minpac#init")
+if exists("*minpac#init") && !s:isCmdExe()
   augroup colorscheme
     autocmd!
     autocmd VIMEnter * nested colorscheme hybrid
