@@ -164,8 +164,6 @@ if exists("*minpac#init")
           \})
   endif
 
-  "シンプルな履歴管理
-  call minpac#add("pavoljuhas/oldfilesearch.vim")
   "括弧補完
   call minpac#add("cohama/lexima.vim")
   "HTMLのシンタックス
@@ -175,7 +173,8 @@ if exists("*minpac#init")
   "JavaScript用シンタックス
   call minpac#add("othree/yajs.vim")
   call minpac#add("guileen/vim-node-dict", {
-        \ "type": "opt"
+        \ "type": "opt",
+        \ "frozen": 1
         \})
   "かっこいいバー
   call minpac#add("itchyny/lightline.vim")
