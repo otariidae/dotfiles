@@ -312,12 +312,6 @@ if exists("*minpac#init")
 endif
 "}}}
 
-"html5 {{{
-if exists("*minpac#init")
-  let g:html5_rdfa_attributes_complete = 0
-endif
-"}}}
-
 "tcomment {{{
 if exists("*minpac#init")
   "<C-_>は使わない(insertモードで使わない)
