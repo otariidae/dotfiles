@@ -166,8 +166,6 @@ if exists("*minpac#init")
 
   "括弧補完
   call minpac#add("cohama/lexima.vim")
-  "HTMLのシンタックス
-  call minpac#add("othree/html5.vim")
   "pugのシンタックス
   call minpac#add("digitaltoad/vim-pug")
   "JavaScript用シンタックス
