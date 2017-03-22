@@ -17,6 +17,7 @@ if !s:isCmdExe()
   set t_Co=256
   set termguicolors
 endif
+set iminsert=0
 "ステータスバー
 set laststatus=2
 "不可視文字の表示
