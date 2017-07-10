@@ -220,9 +220,6 @@ if exists("*minpac#init")
         \ },
         \ "tabline": {
         \   "right": []
-        \ },
-        \ "tab_component_function": {
-        \   "my-filename": "LightLineTabFilename"
         \ }
         \}
   if s:isCmdExe()
