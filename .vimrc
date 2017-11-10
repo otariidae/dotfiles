@@ -180,7 +180,7 @@ if exists("*minpac#init")
   "かっこいいバー
   call minpac#add("itchyny/lightline.vim")
   "editorconfig
-  call minpac#add("editorconfig/editorconfig-vim")
+  call minpac#add("sgur/vim-editorconfig")
   "コメントを楽にする
   call minpac#add("tomtom/tcomment_vim")
   "標準プラグインより速いらしいので
