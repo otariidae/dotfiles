@@ -171,6 +171,8 @@ if exists("*minpac#init")
   call minpac#add("digitaltoad/vim-pug")
   "JavaScript用シンタックス
   call minpac#add("othree/yajs.vim")
+  "TOML
+  call minpac#add("cespare/vim-toml")
   call minpac#add("guileen/vim-node-dict", {
         \ "type": "opt",
         \ "frozen": 1
