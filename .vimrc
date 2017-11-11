@@ -71,16 +71,15 @@ set history=16
 set updatetime=10000
 set updatecount=500
 set backup
-set undodir=
+set viminfo=
+set backupdir=
 "ファイルの場所
 if has("win32") || has("unix")
-  set viminfo='128,<32,s8,n~/.cache/.viminfo
+  set undodir=~/.cache/undo
   set directory=~/.cache/swp
-  set backupdir=~/.cache/backup
 else
-  set viminfo=
+  set undodir=
   set directory=
-  set backupdir=
 endif
 "{{{
 "折りたたみ設定
