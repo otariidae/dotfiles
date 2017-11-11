@@ -27,6 +27,8 @@ set display=lastline
 set noshowmatch
 "検索結果ハイライト
 set hlsearch
+"backspaceで文字を消す
+set backspace=start
 "スクロール時の上下マージン
 set scrolloff=5
 "マウス
