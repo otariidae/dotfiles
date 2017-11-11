@@ -7,8 +7,6 @@ if has("win32")
   " DirectX
   set renderoptions=type:directx,renmode:5,taamode:1
 endif
-"カレントラインのハイライト
-" set cursorline
 "アイコンバーの非表示
 set guioptions-=T
 "メニュー非表示

@@ -33,8 +33,6 @@ set noshowmatch
 set hlsearch
 "スクロール時の上下マージン
 set scrolloff=5
-"スクロール時の左右マージン
-" set sidescrolloff=8
 "マウス
 set mouse=nv
 "スクリプト動作中に描画しない
@@ -51,8 +49,6 @@ set showtabline=2
 "メニュー非ロード
 let g:did_install_default_menus = 1
 let g:did_install_syntax_menu = 1
-"行端で隣の行に行くキー
-" set whitchwrap& whichwrap+=h,l
 "コマンドライン補完
 set wildmenu
 "検索ループ
