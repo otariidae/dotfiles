@@ -1,8 +1,4 @@
-if has("win32") && !has("gui_running") && !has("nvim")
-  set encoding=cp932
-else
-  set encoding=utf-8
-endif
+set encoding=utf-8
 scriptencoding utf-8
 
 "関数 {{{
