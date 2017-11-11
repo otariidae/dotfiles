@@ -11,6 +11,14 @@ endif
 set guioptions-=T
 "メニュー非表示
 set guioptions-=m
+set guioptions+=M
+set winaltkeys=no
+"スクロールバー非表示
+set guioptions-=r
+set guioptions-=R
+set guioptions-=l
+set guioptions-=L
+set guioptions-=b
 "タブ
 set guioptions-=e
 "gvimrcからコピペ
