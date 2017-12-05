@@ -5,7 +5,7 @@ if has("win32")
   set guifontwide=Myrica_M
   set linespace=0
   " DirectX
-  set renderoptions=type:directx,renmode:5,taamode:1
+  " set renderoptions=type:directx,renmode:5,taamode:1
 endif
 "アイコンバーの非表示
 set guioptions-=T
