@@ -70,9 +70,8 @@ set synmaxcol=500
 set history=16
 set updatetime=10000
 set updatecount=500
-set backup
+set nobackup
 set viminfo=
-set backupdir=
 "ファイルの場所
 if has("win32") || has("unix")
   set undodir=~/.cache/undo
