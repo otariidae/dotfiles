@@ -166,6 +166,8 @@ if exists("*minpac#init")
   "JavaScript用シンタックス
   call minpac#add("othree/yajs.vim")
   call minpac#add("leafgarland/typescript-vim")
+  "Go
+  call minpac#add("fatih/vim-go")
   "TOML
   call minpac#add("cespare/vim-toml")
   call minpac#add("guileen/vim-node-dict", {
@@ -314,6 +316,13 @@ if exists("*minpac#init")
   "<Leader>を使わない(困る)
   let g:tcommentMapLeader2 = ""
 endif
+"}}}
+
+"vim-go {{{
+let g:go_play_open_browser = 0
+"1だと<C-x><C-o>がめっちゃ遅くなるので
+let g:go_gocode_autobuild = 0
+let g:go_template_autocreate = 0
 "}}}
 
 if exists("*minpac#init") && !s:isCmdExe()
