@@ -164,7 +164,7 @@ if exists("*minpac#init")
   "pugのシンタックス
   call minpac#add("digitaltoad/vim-pug")
   "JavaScript用シンタックス
-  call minpac#add("othree/yajs.vim")
+  call minpac#add("pangloss/vim-javascript")
   call minpac#add("leafgarland/typescript-vim")
   "Go
   call minpac#add("fatih/vim-go")
@@ -191,6 +191,8 @@ endif
 
 filetype plugin indent on
 syntax on
+
+let g:javascript_plugin_flow = 1
 
 "lightline {{{
 if exists("*minpac#init")
