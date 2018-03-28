@@ -39,6 +39,8 @@ set mouse=nv
 set lazyredraw
 "タイトルを表示しない
 set notitle
+" vim-go
+set completeopt=menu
 "省略メッセージ設定
 set shortmess=aoOT
 set formatoptions& formatoptions-=r
