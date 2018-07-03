@@ -181,7 +181,7 @@ if exists("*minpac#init")
   "editorconfig
   call minpac#add("sgur/vim-editorconfig")
   "コメントを楽にする
-  call minpac#add("tomtom/tcomment_vim")
+  call minpac#add("tyru/caw.vim")
   "標準プラグインより速いらしいので
   call minpac#add("itchyny/vim-parenmatch")
   "git
@@ -310,15 +310,6 @@ if exists("*minpac#init")
     endfor
     return join(l:ret, " ")
   endfunction
-endif
-"}}}
-
-"tcomment {{{
-if exists("*minpac#init")
-  "<C-_>は使わない(insertモードで使わない)
-  let g:tcommentMapLeader1 = ""
-  "<Leader>を使わない(困る)
-  let g:tcommentMapLeader2 = ""
 endif
 "}}}
 
