@@ -2,7 +2,7 @@ scriptencoding utf-8
 "見た目
 if has("win32")
   set guifont=Fira_Code:h10.5
-  set guifontwide=Myrica_M
+  set guifontwide=Cica
   set linespace=0
   " DirectX
   " set renderoptions=type:directx,renmode:5,taamode:1
