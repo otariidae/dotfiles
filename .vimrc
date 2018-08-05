@@ -141,6 +141,8 @@ nnoremap <Up> <Nop>
 nnoremap <Right> <Nop>
 nnoremap <Down> <Nop>
 nnoremap <Left> <Nop>
+noremap <Home> <Nop>
+noremap <End> <Nop>
 "kaoriyaプラグインから移植
 command! -nargs=0 CdCurrent cd %:p:h
 "}}}
