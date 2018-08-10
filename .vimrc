@@ -190,6 +190,8 @@ if exists("*minpac#init")
   call minpac#add("airblade/vim-gitgutter")
   "不要な空白
   call minpac#add("bronson/vim-trailing-whitespace")
+  " ファイルマネージャー
+  call minpac#add("justinmk/vim-dirvish")
 endif
 "}}}
 
