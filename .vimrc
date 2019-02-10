@@ -163,6 +163,12 @@ if exists("*minpac#init")
           \})
   endif
 
+  " Language Protocol Server
+  call minpac#add("prabirshrestha/async.vim")
+  call minpac#add("prabirshrestha/vim-lsp")
+  " LSP for TypeScript
+  call minpac#add("ryanolsonx/vim-lsp-typescript")
+
   "括弧補完
   call minpac#add("cohama/lexima.vim")
   "pugのシンタックス
@@ -199,6 +205,16 @@ filetype plugin indent on
 syntax on
 
 let g:javascript_plugin_flow = 1
+
+if executable('typescript-language-server')
+  au User lsp_setup call lsp#register_server({
+    \ 'name': 'typescript-language-server',
+    \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
+    \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'tsconfig.json'))},
+    \ 'whitelist': ['typescript', 'typescript.tsx'],
+    \ })
+  autocmd FileType typescript setlocal omnifunc=lsp#complete
+endif
 
 "lightline {{{
 if exists("*minpac#init")
