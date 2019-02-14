@@ -8,6 +8,7 @@ endfunction
 "}}}
 
 "設定 {{{
+set ttyfast
 "色
 if !s:isCmdExe()
   set t_Co=256
