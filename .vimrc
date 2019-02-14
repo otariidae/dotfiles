@@ -150,7 +150,7 @@ command! -nargs=0 CdCurrent cd %:p:h
 
 "minpac {{{
 packadd minpac
-if v:version < 800 && exists("*minpac#init")
+if exists("*minpac#init")
 
   call minpac#init()
 
