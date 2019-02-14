@@ -341,12 +341,12 @@ let g:go_gocode_autobuild = 0
 let g:go_template_autocreate = 0
 "}}}
 
-if !s:isCmdExe()
-  colorscheme hybrid
-  "黒背景
-  set background=dark
+if s:isCmdExe()
   set termguicolors
 endif
+colorscheme hybrid
+"黒背景
+set background=dark
 
 "kaoriyaユーティリティの無効化 {{{
 if has("kaoriya")
