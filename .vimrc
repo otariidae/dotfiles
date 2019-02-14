@@ -345,6 +345,7 @@ if !s:isCmdExe()
   colorscheme hybrid
   "黒背景
   set background=dark
+  set termguicolors
 endif
 
 "kaoriyaユーティリティの無効化 {{{
