@@ -168,6 +168,8 @@ if exists("*minpac#init")
   call minpac#add("cohama/lexima.vim")
   "pugのシンタックス
   call minpac#add("digitaltoad/vim-pug")
+  "CSS
+  call minpac#add("hail2u/vim-css3-syntax")
   "JavaScript用シンタックス
   call minpac#add("pangloss/vim-javascript")
   call minpac#add("leafgarland/typescript-vim")
