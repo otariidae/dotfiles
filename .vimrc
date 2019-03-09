@@ -67,6 +67,10 @@ set updatetime=10000
 set updatecount=500
 set nobackup
 set viminfo=
+" neovimでもminpacを使う
+if has("nvim")
+  set packpath^=~/.vim
+endif
 "ファイルの場所
 if has("win32") || has("unix")
   set undodir=~/.cache/undo
