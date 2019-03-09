@@ -1,19 +1,11 @@
 set encoding=utf-8
 scriptencoding utf-8
 
-"関数 {{{
-function! s:isCmdExe() abort
-  return has("win32") && !has("gui_running")
-endfunction
-"}}}
-
 "設定 {{{
 set ttyfast
 "色
-if !s:isCmdExe()
-  set t_Co=256
-  set termguicolors
-endif
+set t_Co=256
+set termguicolors
 set iminsert=0
 "ステータスバー
 set laststatus=2
@@ -158,11 +150,9 @@ if exists("*minpac#init")
         \ "type": "opt"
         \})
 
-  if !s:isCmdExe()
-    call minpac#add("w0ng/vim-hybrid", {
-          \ "frozen": 1
-          \})
-  endif
+  call minpac#add("w0ng/vim-hybrid", {
+        \ "frozen": 1
+        \})
 
   " Language Protocol Server
   call minpac#add("prabirshrestha/async.vim")
@@ -246,11 +236,7 @@ if exists("*minpac#init")
         \   "right": []
         \ }
         \}
-  if s:isCmdExe()
-    let g:lightline.colorscheme = "landscape"
-  else
-    let g:lightline.colorscheme = "wombat"
-  endif
+  let g:lightline.colorscheme = "wombat"
 
   function! LightLineReadOnly() abort
     if &readonly == 0
@@ -341,9 +327,6 @@ let g:go_gocode_autobuild = 0
 let g:go_template_autocreate = 0
 "}}}
 
-if s:isCmdExe()
-  set termguicolors
-endif
 colorscheme hybrid
 "黒背景
 set background=dark
