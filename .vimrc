@@ -14,6 +14,9 @@ set list
 set listchars=tab:->,eol:$,trail:-
 "行番号
 set number
+"行番号のみカーソル位置表示 8.1.2019
+set cursorline
+set cursorlineopt=number
 "@
 set display=lastline
 "閉じ括弧入力時に対応する開括弧に一瞬移動しない
