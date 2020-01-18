@@ -1,4 +1,5 @@
 set encoding=utf-8
+set fileencodings=utf-8,cp932,sjis,euc-jp
 scriptencoding utf-8
 
 "設定 {{{
