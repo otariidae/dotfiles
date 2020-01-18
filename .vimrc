@@ -6,7 +6,9 @@ scriptencoding utf-8
 set ttyfast
 "色
 set t_Co=256
-set termguicolors
+if $COLORTERM ==# 'truecolor' || $COLORTERM ==# '24bit'
+  set termguicolors
+endif
 set iminsert=0
 "ステータスバー
 set laststatus=2
