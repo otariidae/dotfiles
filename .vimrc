@@ -181,7 +181,7 @@ if exists("*minpac#init")
   call minpac#add("pangloss/vim-javascript")
   call minpac#add("leafgarland/typescript-vim")
   "Go
-  call minpac#add("fatih/vim-go")
+  call minpac#add("mattn/vim-goimports")
   "TOML
   call minpac#add("cespare/vim-toml")
   call minpac#add("guileen/vim-node-dict", {
@@ -331,13 +331,6 @@ if exists("*minpac#init")
     return join(l:ret, " ")
   endfunction
 endif
-"}}}
-
-"vim-go {{{
-let g:go_play_open_browser = 0
-"1だと<C-x><C-o>がめっちゃ遅くなるので
-let g:go_gocode_autobuild = 0
-let g:go_template_autocreate = 0
 "}}}
 
 colorscheme hybrid
