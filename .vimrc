@@ -152,7 +152,7 @@ command! -nargs=0 CdCurrent cd %:p:h
 
 "minpac {{{
 packadd minpac
-if exists("*minpac#init")
+if exists("g:loaded_minpac")
 
   call minpac#init()
 
