@@ -171,7 +171,7 @@ if exists("*minpac#init")
   call minpac#add("ryanolsonx/vim-lsp-typescript")
 
   "括弧補完
-  call minpac#add("cohama/lexima.vim")
+  call minpac#add("mattn/vim-lexiv")
   "pugのシンタックス
   call minpac#add("digitaltoad/vim-pug")
   "CSS
