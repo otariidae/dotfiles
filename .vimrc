@@ -165,7 +165,6 @@ if exists("*minpac#init")
         \})
 
   " Language Protocol Server
-  call minpac#add("prabirshrestha/async.vim")
   call minpac#add("prabirshrestha/vim-lsp")
   call minpac#add("mattn/vim-lsp-settings")
   " LSP for TypeScript
