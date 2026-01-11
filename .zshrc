@@ -12,5 +12,7 @@ setopt hist_ignore_all_dups
 
 prompt pure
 
+export EDITOR=vim
+
 eval "$(mise activate zsh)"
 
