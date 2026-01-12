@@ -16,3 +16,5 @@ export EDITOR=vim
 
 eval "$(mise activate zsh)"
 
+source <(jj util completion zsh)
+
