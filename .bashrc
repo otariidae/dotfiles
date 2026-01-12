@@ -81,6 +81,8 @@ if [ -x /usr/bin/dircolors ]; then
     export LESS='-g -i -M -R -S -W -z-4 -x4'
 fi
 
+export EDITOR=vim
+
 # some more ls aliases
 alias ll='ls -alFh'
 alias la='ls -A'
