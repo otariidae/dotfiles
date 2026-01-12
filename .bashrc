@@ -105,3 +105,5 @@ fi
 #fi
 
 eval "$(mise activate bash)"
+
+source <(jj util completion bash)
