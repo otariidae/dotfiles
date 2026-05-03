@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(base64)",
+      "Shell(cat)",
+      "Shell(echo)",
+      "Shell(find)",
+      "Shell(grep)",
+      "Shell(head)",
+      "Shell(jq)",
+      "Shell(ls)",
+      "Shell(pwd)",
+      "Shell(sort)",
+      "Shell(wl)",
+      "Shell(git add)",
+      "Shell(git branch)",
+      "Shell(git checkout)",
+      "Shell(git commit)",
+      "Shell(git fetch)",
+      "Shell(git log)",
+      "Shell(git pull)",
+      "Shell(git rebase)",
+      "Shell(git reset)",
+      "Shell(git rm)",
+      "Shell(git show)",
+      "Shell(git status)",
+      "Shell(git switch)",
+      "Shell(gh issue list)",
+      "Shell(gh issue view)",
+      "Shell(gh run list)",
+      "Shell(gh run view)",
+      "Shell(gh run watch)",
+      "Shell(gh pr checks)",
+      "Shell(gh pr diff)",
+      "Shell(gh pr list)",
+      "Shell(gh pr view)",
+      "Shell(gh search)"
+    ],
+    "deny": []
+  }
+}

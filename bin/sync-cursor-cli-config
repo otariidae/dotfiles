@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Merge cli-config.base.json into ~/.cursor/cli-config.json with jq.
+# Nested objects merge recursively (jq object multiply); base wins on conflict.
+# Keys only in the local file are preserved (e.g. authInfo).
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEST="${CURSOR_CLI_CONFIG:-$HOME/.cursor/cli-config.json}"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'EOF'
+Merge cli-config.base.json into ~/.cursor/cli-config.json.
+
+Nested objects are merged recursively; values from the base file override
+the local file. Arrays under the same key are replaced by the base file’s
+array. Keys that exist only in the local file are kept.
+
+Usage:
+  sync-cursor-cli-config [BASE_JSON]
+
+Arguments:
+  BASE_JSON    Shareable fragment (default: <repo>/cli-config.base.json)
+
+Environment:
+  CURSOR_CLI_CONFIG_BASE    Override base path
+  CURSOR_CLI_CONFIG         Override destination (default: ~/.cursor/cli-config.json)
+EOF
+  exit 0
+fi
+
+BASE="${CURSOR_CLI_CONFIG_BASE:-${1:-$REPO_ROOT/cli-config.base.json}}"
+
+if [[ ! -f "$BASE" ]]; then
+  printf 'error: base config not found: %s\n' "$BASE" >&2
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'error: jq is required\n' >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$DEST")"
+
+tmp="${DEST}.tmp.$$"
+cleanup() { rm -f "$tmp"; }
+trap cleanup EXIT
+
+if [[ -f "$DEST" ]]; then
+  jq -s --indent 2 '.[0] * .[1]' "$DEST" "$BASE" >"$tmp"
+else
+  jq --indent 2 '.' "$BASE" >"$tmp"
+fi
+
+mv "$tmp" "$DEST"
+trap - EXIT
+
+printf 'Updated %s from %s\n' "$DEST" "$BASE"
