@@ -1,6 +1,7 @@
 [tools]
 "aqua:k1LoW/mo" = "latest"
 "aqua:rhysd/dotfiles" = "latest"
+"aqua:skim-rs/skim" = "latest"
 codex = "latest"
 gh = "latest"
 ghq = "latest"
