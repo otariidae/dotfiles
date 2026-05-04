@@ -2,6 +2,7 @@
 codex = "latest"
 gh = "latest"
 ghq = "latest"
+jj = "latest"
 node = "lts"
 uv = "latest"
 
