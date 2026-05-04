@@ -1,4 +1,5 @@
 [tools]
+gh = "latest"
 ghq = "latest"
 node = "lts"
 
