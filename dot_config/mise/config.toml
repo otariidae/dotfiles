@@ -4,6 +4,7 @@ codex = "latest"
 gh = "latest"
 ghq = "latest"
 jj = "latest"
+jq = "latest"
 node = "lts"
 uv = "latest"
 
