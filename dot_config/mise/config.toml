@@ -3,6 +3,7 @@ codex = "latest"
 gh = "latest"
 ghq = "latest"
 node = "lts"
+uv = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["ruby", "python", "node"]
