@@ -1,0 +1,10 @@
+[Unit]
+Description=Fix Bluetooth A2DP profile after reconnect
+After=wireplumber.service pipewire.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/bt-a2dp-fix.sh
+
+[Install]
+WantedBy=default.target

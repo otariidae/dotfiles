@@ -1,3 +1,10 @@
 {
-  "dot_config/mise/config.toml": "~/.config/mise/config.toml"
+  "dot_config/mise/config.toml": "~/.config/mise/config.toml",
+  "dot_config/bt-a2dp-fix/config": "~/.config/bt-a2dp-fix/config",
+  "dot_config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua": "~/.config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua",
+  "dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua": "~/.config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua",
+  "dot_config/systemd/user/bt-a2dp-fix.service": "~/.config/systemd/user/bt-a2dp-fix.service",
+  "dot_config/systemd/user/bt-a2dp-monitor.service": "~/.config/systemd/user/bt-a2dp-monitor.service",
+  "dot_local/bin/bt-a2dp-fix.sh": "~/.local/bin/bt-a2dp-fix.sh",
+  "dot_local/bin/bt-a2dp-monitor.sh": "~/.local/bin/bt-a2dp-monitor.sh"
 }

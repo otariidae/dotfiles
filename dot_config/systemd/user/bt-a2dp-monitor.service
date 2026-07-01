@@ -1,0 +1,12 @@
+[Unit]
+Description=Monitor Bluetooth device for A2DP profile regressions
+After=bluetooth.service wireplumber.service
+PartOf=bluetooth.service
+
+[Service]
+ExecStart=%h/.local/bin/bt-a2dp-monitor.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
