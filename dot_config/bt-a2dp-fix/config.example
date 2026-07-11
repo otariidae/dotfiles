@@ -2,16 +2,17 @@
 # Find with: bluetoothctl devices Connected
 BT_MAC='00:00:00:00:00:00'
 
+# BlueZ adapter that owns the device.
+BT_ADAPTER='hci0'
+
 # Profiles to restore when the device falls back to Audio Gateway / HFP.
 BT_TARGET_PROFILE='a2dp-sink-sbc_xq'
 BT_FALLBACK_PROFILE='a2dp-sink-sbc'
 
-# Monitor poll interval and minimum time between automatic fixes (seconds).
+# Poll interval, grace period for profile discovery, and fix cooldown (seconds).
 BT_POLL_INTERVAL=3
+BT_PROFILE_GRACE=5
 BT_FIX_COOLDOWN=20
-
-# Retry count for profile reset / reconnect in bt-a2dp-fix.sh.
-BT_MAX_ATTEMPTS=6
 
 # Syslog identifier for journalctl -t.
 BT_LOG_TAG='bt-a2dp-fix'

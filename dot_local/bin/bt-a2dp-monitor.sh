@@ -10,17 +10,36 @@ source "${SCRIPT_DIR}/../lib/bt-a2dp-fix/common.sh"
 bt_a2dp_fix_load_config
 
 last_fix=0
+connected_since=0
 
 while true; do
-  if bluetoothctl info "$BT_MAC" 2>/dev/null | grep -q 'Connected: yes'; then
+  now="$(date +%s)"
+  if LC_ALL=C bluetoothctl info "$BT_MAC" 2>/dev/null | grep -q 'Connected: yes'; then
+    if (( connected_since == 0 )); then
+      connected_since=$now
+    fi
+
     prof="$(bt_a2dp_fix_card_profile)"
-    if [[ -n "$prof" ]] && ! bt_a2dp_fix_is_a2dp_profile "$prof"; then
-      now="$(date +%s)"
+    needs_fix=false
+    if [[ -n "$prof" ]]; then
+      if ! bt_a2dp_fix_is_a2dp_profile "$prof"; then
+        needs_fix=true
+      fi
+    elif (( now - connected_since >= BT_PROFILE_GRACE )); then
+      needs_fix=true
+    fi
+
+    if "$needs_fix"; then
       if (( now - last_fix >= BT_FIX_COOLDOWN )); then
         last_fix=$now
-        systemctl --user start bt-a2dp-fix.service
+        bt_a2dp_fix_log "trigger profile=${prof:-missing}"
+        if ! systemctl --user start bt-a2dp-fix.service; then
+          bt_a2dp_fix_log "recovery service failed"
+        fi
       fi
     fi
+  else
+    connected_since=0
   fi
   sleep "$BT_POLL_INTERVAL"
 done

@@ -6,5 +6,6 @@
   "dot_config/systemd/user/bt-a2dp-fix.service": "~/.config/systemd/user/bt-a2dp-fix.service",
   "dot_config/systemd/user/bt-a2dp-monitor.service": "~/.config/systemd/user/bt-a2dp-monitor.service",
   "dot_local/bin/bt-a2dp-fix.sh": "~/.local/bin/bt-a2dp-fix.sh",
-  "dot_local/bin/bt-a2dp-monitor.sh": "~/.local/bin/bt-a2dp-monitor.sh"
+  "dot_local/bin/bt-a2dp-monitor.sh": "~/.local/bin/bt-a2dp-monitor.sh",
+  "dot_local/lib/bt-a2dp-fix/common.sh": "~/.local/lib/bt-a2dp-fix/common.sh"
 }

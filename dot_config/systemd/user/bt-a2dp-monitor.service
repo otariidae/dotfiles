@@ -1,7 +1,9 @@
 [Unit]
 Description=Monitor Bluetooth device for A2DP profile regressions
-After=bluetooth.service wireplumber.service
-PartOf=bluetooth.service
+After=pipewire.service wireplumber.service
+ConditionPathExists=%h/.config/bt-a2dp-fix/config
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
 ExecStart=%h/.local/bin/bt-a2dp-monitor.sh

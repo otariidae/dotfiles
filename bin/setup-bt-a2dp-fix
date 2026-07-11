@@ -5,8 +5,18 @@ set -euo pipefail
 readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 readonly CONFIG="$REPO_ROOT/dot_config/bt-a2dp-fix/config"
 readonly CONFIG_EXAMPLE="$REPO_ROOT/dot_config/bt-a2dp-fix/config.example"
-readonly TEMPLATE="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua.in"
-readonly OUTPUT="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua"
+readonly DEVICE_TEMPLATE="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua.in"
+readonly DEVICE_OUTPUT="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua"
+readonly PRIORITY_TEMPLATE="$REPO_ROOT/dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua.in"
+readonly PRIORITY_OUTPUT="$REPO_ROOT/dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua"
+
+required_commands=(bluetoothctl busctl dotfiles logger pactl systemctl)
+for command in "${required_commands[@]}"; do
+  if ! command -v "$command" >/dev/null; then
+    printf 'Missing required command: %s\n' "$command" >&2
+    exit 1
+  fi
+done
 
 if [[ ! -f "$CONFIG" ]]; then
   cp "$CONFIG_EXAMPLE" "$CONFIG"
@@ -21,9 +31,14 @@ if [[ -z "${BT_MAC:-}" || "$BT_MAC" == '00:00:00:00:00:00' ]]; then
   printf 'Set BT_MAC in %s before running setup.\n' "$CONFIG"
   exit 1
 fi
+if [[ ! "$BT_MAC" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]]; then
+  printf 'Invalid BT_MAC in %s: %s\n' "$CONFIG" "$BT_MAC" >&2
+  exit 1
+fi
 
 card="${BT_MAC//:/_}"
-sed "s/@CARD@/$card/g" "$TEMPLATE" >"$OUTPUT"
+sed "s/@CARD@/$card/g" "$DEVICE_TEMPLATE" >"$DEVICE_OUTPUT"
+sed "s/@CARD@/$card/g" "$PRIORITY_TEMPLATE" >"$PRIORITY_OUTPUT"
 
 link_targets=(
   dot_config/bt-a2dp-fix/config
@@ -33,13 +48,14 @@ link_targets=(
   dot_config/systemd/user/bt-a2dp-monitor.service
   dot_local/bin/bt-a2dp-fix.sh
   dot_local/bin/bt-a2dp-monitor.sh
+  dot_local/lib/bt-a2dp-fix/common.sh
 )
 
 dotfiles link "$REPO_ROOT" "${link_targets[@]}"
 
-systemctl --user disable --now qcy-bt-monitor.service 2>/dev/null || true
 systemctl --user daemon-reload
+systemctl --user restart wireplumber.service
 systemctl --user enable --now bt-a2dp-monitor.service
 
-printf 'Enabled bt-a2dp-monitor.service (bt-a2dp-fix runs on demand).\n'
+printf 'Reloaded WirePlumber and enabled bt-a2dp-monitor.service.\n'
 printf 'Logs: journalctl -t %s -b\n' "${BT_LOG_TAG:-bt-a2dp-fix}"

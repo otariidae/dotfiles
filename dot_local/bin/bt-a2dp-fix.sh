@@ -11,7 +11,6 @@ bt_a2dp_fix_load_config
 
 readonly BT_A2DP_SINK_UUID="0000110b-0000-1000-8000-00805f9b34fb"
 readonly BT_A2DP_SOURCE_UUID="0000110a-0000-1000-8000-00805f9b34fb"
-readonly BT_DEVICE_PATH="/org/bluez/hci0/dev_${BT_MAC//:/_}"
 
 bt_a2dp_fix_bluez_profile_call() {
   local method="$1"
@@ -68,43 +67,71 @@ bt_a2dp_fix_wait_and_select_profile() {
   return 1
 }
 
-bt_a2dp_fix_log "start (current=$(bt_a2dp_fix_card_profile))"
+bt_a2dp_fix_finish_if_healthy() {
+  local cur
+  local sink
 
-for _attempt in $(seq 1 "$BT_MAX_ATTEMPTS"); do
   cur="$(bt_a2dp_fix_card_profile)"
   if [[ "$cur" == "$BT_TARGET_PROFILE" || "$cur" == "$BT_FALLBACK_PROFILE" ]]; then
-    if sink="$(bt_a2dp_fix_default_sink)"; [[ -n "$sink" ]]; then
-      pactl set-default-sink "$sink" 2>/dev/null || true
+    if sink="$(bt_a2dp_fix_default_sink)" && [[ -n "$sink" ]]; then
+      LC_ALL=C pactl set-default-sink "$sink" 2>/dev/null || true
     fi
     bt_a2dp_fix_log "ok profile=$cur"
-    exit 0
+    return
   fi
 
-  bt_a2dp_fix_set_profile off
-  sleep 2
+  return 1
+}
 
-  if bt_a2dp_fix_select_available_profile; then
-    sleep 2
-    continue
-  fi
+bt_a2dp_fix_wait_for_healthy_profile() {
+  local _wait
 
-  bt_a2dp_fix_log "replacing A2DP source with sink profile"
-  if bt_a2dp_fix_switch_bluez_to_a2dp_sink; then
-    if bt_a2dp_fix_wait_and_select_profile; then
-      sleep 2
-      continue
+  for _wait in $(seq 1 10); do
+    if bt_a2dp_fix_finish_if_healthy; then
+      return
     fi
-  fi
+    sleep 0.5
+  done
 
-  bt_a2dp_fix_log "A2DP sink unavailable; reconnecting device"
-  bluetoothctl disconnect "$BT_MAC" >/dev/null 2>&1 || true
-  sleep 3
-  bluetoothctl connect "$BT_MAC" >/dev/null 2>&1 || true
-  sleep 2
-  bt_a2dp_fix_switch_bluez_to_a2dp_sink || true
-  bt_a2dp_fix_wait_and_select_profile || true
-  sleep 2
-done
+  return 1
+}
 
-bt_a2dp_fix_log "failed after ${BT_MAX_ATTEMPTS} attempts"
+bt_a2dp_fix_log "start (current=$(bt_a2dp_fix_card_profile))"
+
+if bt_a2dp_fix_finish_if_healthy; then
+  exit 0
+fi
+
+bt_a2dp_fix_set_profile off || true
+sleep 2
+
+if bt_a2dp_fix_select_available_profile &&
+  bt_a2dp_fix_wait_for_healthy_profile; then
+  exit 0
+fi
+
+bt_a2dp_fix_log "replacing A2DP source with sink profile"
+if bt_a2dp_fix_switch_bluez_to_a2dp_sink &&
+  bt_a2dp_fix_wait_and_select_profile &&
+  bt_a2dp_fix_wait_for_healthy_profile; then
+  exit 0
+fi
+
+bt_a2dp_fix_log "A2DP sink unavailable; reconnecting device"
+bluetoothctl disconnect "$BT_MAC" >/dev/null 2>&1 || true
+sleep 3
+bluetoothctl connect "$BT_MAC" >/dev/null 2>&1 || true
+sleep 2
+
+if bt_a2dp_fix_finish_if_healthy; then
+  exit 0
+fi
+
+bt_a2dp_fix_switch_bluez_to_a2dp_sink || true
+if bt_a2dp_fix_wait_and_select_profile &&
+  bt_a2dp_fix_wait_for_healthy_profile; then
+  exit 0
+fi
+
+bt_a2dp_fix_log "failed after targeted recovery and one reconnect"
 exit 1
