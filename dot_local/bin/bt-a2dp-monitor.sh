@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Poll a Bluetooth device and trigger bt-a2dp-fix when not on A2DP playback.
+# Trigger bt-a2dp-fix when BlueZ reports that the configured device connected.
 set -euo pipefail
 
 readonly SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -9,37 +9,43 @@ source "${SCRIPT_DIR}/../lib/bt-a2dp-fix/common.sh"
 
 bt_a2dp_fix_load_config
 
-last_fix=0
-connected_since=0
+bt_a2dp_monitor_is_connected() {
+  [[ "$(
+    busctl get-property \
+      org.bluez \
+      "$BT_DEVICE_PATH" \
+      org.bluez.Device1 \
+      Connected 2>/dev/null
+  )" == "b true" ]]
+}
 
-while true; do
-  now="$(date +%s)"
-  if LC_ALL=C bluetoothctl info "$BT_MAC" 2>/dev/null | grep -q 'Connected: yes'; then
-    if (( connected_since == 0 )); then
-      connected_since=$now
-    fi
+bt_a2dp_monitor_trigger() {
+  local reason="$1"
 
-    prof="$(bt_a2dp_fix_card_profile)"
-    needs_fix=false
-    if [[ -n "$prof" ]]; then
-      if ! bt_a2dp_fix_is_a2dp_profile "$prof"; then
-        needs_fix=true
-      fi
-    elif (( now - connected_since >= BT_PROFILE_GRACE )); then
-      needs_fix=true
-    fi
-
-    if "$needs_fix"; then
-      if (( now - last_fix >= BT_FIX_COOLDOWN )); then
-        last_fix=$now
-        bt_a2dp_fix_log "trigger profile=${prof:-missing}"
-        if ! systemctl --user start bt-a2dp-fix.service; then
-          bt_a2dp_fix_log "recovery service failed"
-        fi
-      fi
-    fi
-  else
-    connected_since=0
+  sleep "$BT_PROFILE_GRACE"
+  if ! bt_a2dp_monitor_is_connected; then
+    return
   fi
-  sleep "$BT_POLL_INTERVAL"
-done
+
+  bt_a2dp_fix_log "trigger reason=$reason profile=$(bt_a2dp_fix_card_profile)"
+  if ! systemctl --user start bt-a2dp-fix.service; then
+    bt_a2dp_fix_log "recovery service failed"
+  fi
+}
+
+if bt_a2dp_monitor_is_connected; then
+  bt_a2dp_monitor_trigger startup
+fi
+
+bt_a2dp_fix_log "monitoring BlueZ connection events path=$BT_DEVICE_PATH"
+LC_ALL=C gdbus monitor \
+  --system \
+  --dest org.bluez \
+  --object-path "$BT_DEVICE_PATH" |
+  while IFS= read -r event; do
+    case "$event" in
+      *org.bluez.Device1*"'Connected': <true>"*)
+        bt_a2dp_monitor_trigger connected
+        ;;
+    esac
+  done

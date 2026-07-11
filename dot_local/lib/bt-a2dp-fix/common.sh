@@ -31,9 +31,7 @@ bt_a2dp_fix_load_config() {
   : "${BT_ADAPTER:=hci0}"
   : "${BT_TARGET_PROFILE:=a2dp-sink-sbc_xq}"
   : "${BT_FALLBACK_PROFILE:=a2dp-sink-sbc}"
-  : "${BT_POLL_INTERVAL:=3}"
-  : "${BT_PROFILE_GRACE:=5}"
-  : "${BT_FIX_COOLDOWN:=20}"
+  : "${BT_PROFILE_GRACE:=2}"
   : "${BT_LOG_TAG:=bt-a2dp-fix}"
 
   if [[ ! "$BT_MAC" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]]; then
@@ -44,13 +42,7 @@ bt_a2dp_fix_load_config() {
     printf 'BT_ADAPTER must have the form hciN: %s\n' "$BT_ADAPTER" >&2
     return 1
   fi
-  bt_a2dp_fix_validate_unsigned_integer BT_POLL_INTERVAL "$BT_POLL_INTERVAL"
   bt_a2dp_fix_validate_unsigned_integer BT_PROFILE_GRACE "$BT_PROFILE_GRACE"
-  bt_a2dp_fix_validate_unsigned_integer BT_FIX_COOLDOWN "$BT_FIX_COOLDOWN"
-  if (( BT_POLL_INTERVAL == 0 )); then
-    printf 'BT_POLL_INTERVAL must be greater than zero.\n' >&2
-    return 1
-  fi
 
   BT_CARD="bluez_card.${BT_MAC//:/_}"
   BT_SINK_PREFIX="bluez_output.${BT_MAC//:/_}"

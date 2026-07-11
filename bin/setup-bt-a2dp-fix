@@ -10,7 +10,7 @@ readonly DEVICE_OUTPUT="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-blu
 readonly PRIORITY_TEMPLATE="$REPO_ROOT/dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua.in"
 readonly PRIORITY_OUTPUT="$REPO_ROOT/dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua"
 
-required_commands=(bluetoothctl busctl dotfiles logger pactl systemctl)
+required_commands=(bluetoothctl busctl dotfiles gdbus logger pactl systemctl)
 for command in "${required_commands[@]}"; do
   if ! command -v "$command" >/dev/null; then
     printf 'Missing required command: %s\n' "$command" >&2

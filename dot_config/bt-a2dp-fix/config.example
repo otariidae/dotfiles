@@ -9,10 +9,8 @@ BT_ADAPTER='hci0'
 BT_TARGET_PROFILE='a2dp-sink-sbc_xq'
 BT_FALLBACK_PROFILE='a2dp-sink-sbc'
 
-# Poll interval, grace period for profile discovery, and fix cooldown (seconds).
-BT_POLL_INTERVAL=3
-BT_PROFILE_GRACE=5
-BT_FIX_COOLDOWN=20
+# Delay after a BlueZ connection event before checking the audio profile.
+BT_PROFILE_GRACE=2
 
 # Syslog identifier for journalctl -t.
 BT_LOG_TAG='bt-a2dp-fix'
