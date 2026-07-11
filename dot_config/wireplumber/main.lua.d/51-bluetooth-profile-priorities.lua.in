@@ -9,8 +9,8 @@ table.insert(device_defaults.profile_priorities, {
     },
   },
   priorities = {
-    "a2dp-sink-sbc_xq",
-    "a2dp-sink-sbc",
+    "@TARGET_PROFILE@",
+    "@FALLBACK_PROFILE@",
     "a2dp-sink",
     "headset-head-unit-msbc",
     "headset-head-unit",

@@ -21,13 +21,19 @@ bt_a2dp_monitor_is_connected() {
 
 bt_a2dp_monitor_trigger() {
   local reason="$1"
+  local profile
 
   sleep "$BT_PROFILE_GRACE"
   if ! bt_a2dp_monitor_is_connected; then
     return
   fi
 
-  bt_a2dp_fix_log "trigger reason=$reason profile=$(bt_a2dp_fix_card_profile)"
+  profile="$(bt_a2dp_fix_card_profile)"
+  if bt_a2dp_fix_is_a2dp_profile "$profile"; then
+    return
+  fi
+
+  bt_a2dp_fix_log "trigger reason=$reason profile=${profile:-missing}"
   if ! systemctl --user start bt-a2dp-fix.service; then
     bt_a2dp_fix_log "recovery service failed"
   fi

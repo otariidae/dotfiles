@@ -10,13 +10,33 @@ readonly DEVICE_OUTPUT="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-blu
 readonly PRIORITY_TEMPLATE="$REPO_ROOT/dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua.in"
 readonly PRIORITY_OUTPUT="$REPO_ROOT/dot_config/wireplumber/main.lua.d/51-bluetooth-profile-priorities.lua"
 
-required_commands=(bluetoothctl busctl dotfiles gdbus logger pactl systemctl)
-for command in "${required_commands[@]}"; do
-  if ! command -v "$command" >/dev/null; then
-    printf 'Missing required command: %s\n' "$command" >&2
+required_commands=(bluetoothctl busctl dotfiles gdbus logger pactl systemctl wireplumber)
+for cmd in "${required_commands[@]}"; do
+  if ! command -v "$cmd" >/dev/null; then
+    printf 'Missing required command: %s\n' "$cmd" >&2
     exit 1
   fi
 done
+
+wireplumber_version="$(
+  wireplumber --version |
+    awk '{
+      for (i = 1; i <= NF; i++) {
+        if ($i ~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/) {
+          print $i
+          exit
+        }
+      }
+    }'
+)"
+case "$wireplumber_version" in
+  0.4.*) ;;
+  *)
+    printf 'Unsupported WirePlumber version: %s (expected 0.4.x)\n' \
+      "${wireplumber_version:-unknown}" >&2
+    exit 1
+    ;;
+esac
 
 if [[ ! -f "$CONFIG" ]]; then
   cp "$CONFIG_EXAMPLE" "$CONFIG"
@@ -35,10 +55,24 @@ if [[ ! "$BT_MAC" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]]; then
   printf 'Invalid BT_MAC in %s: %s\n' "$CONFIG" "$BT_MAC" >&2
   exit 1
 fi
+: "${BT_TARGET_PROFILE:=a2dp-sink-sbc_xq}"
+: "${BT_FALLBACK_PROFILE:=a2dp-sink-sbc}"
+if [[ ! "$BT_TARGET_PROFILE" =~ ^[[:alnum:]_.-]+$ ]]; then
+  printf 'Invalid BT_TARGET_PROFILE in %s: %s\n' "$CONFIG" "$BT_TARGET_PROFILE" >&2
+  exit 1
+fi
+if [[ ! "$BT_FALLBACK_PROFILE" =~ ^[[:alnum:]_.-]+$ ]]; then
+  printf 'Invalid BT_FALLBACK_PROFILE in %s: %s\n' "$CONFIG" "$BT_FALLBACK_PROFILE" >&2
+  exit 1
+fi
 
 card="${BT_MAC//:/_}"
 sed "s/@CARD@/$card/g" "$DEVICE_TEMPLATE" >"$DEVICE_OUTPUT"
-sed "s/@CARD@/$card/g" "$PRIORITY_TEMPLATE" >"$PRIORITY_OUTPUT"
+sed \
+  -e "s/@CARD@/$card/g" \
+  -e "s/@TARGET_PROFILE@/$BT_TARGET_PROFILE/g" \
+  -e "s/@FALLBACK_PROFILE@/$BT_FALLBACK_PROFILE/g" \
+  "$PRIORITY_TEMPLATE" >"$PRIORITY_OUTPUT"
 
 link_targets=(
   dot_config/bt-a2dp-fix/config
