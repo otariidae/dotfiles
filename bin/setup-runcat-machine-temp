@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Configure the RunCat Neo machine temperature source: generate the launchd
+# agent, link dotfiles, start the agent.
+set -euo pipefail
+
+readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly MAPPINGS="$REPO_ROOT/.dotfiles/mappings_darwin.json"
+readonly PLIST_TEMPLATE="$REPO_ROOT/Library/LaunchAgents/local.runcat-machine-temp.plist.in"
+readonly PLIST_OUTPUT="${PLIST_TEMPLATE%.in}"
+readonly AGENT_LABEL='local.runcat-machine-temp'
+# launchd hands the agent no XDG_DATA_HOME, so this is where it will write.
+readonly OUTPUT_PATH="$HOME/.local/share/runcat-neo/machine-temp.json"
+readonly LOG_PATH="$HOME/.local/state/runcat-machine-temp.log"
+
+if [[ "$(uname -s)" != Darwin ]]; then
+  printf 'This setup only runs on macOS.\n' >&2
+  exit 1
+fi
+
+required_commands=(jq launchctl plutil)
+for cmd in "${required_commands[@]}"; do
+  if ! command -v "$cmd" >/dev/null; then
+    printf 'Missing required command: %s\n' "$cmd" >&2
+    exit 1
+  fi
+done
+if ! command -v macmon >/dev/null; then
+  printf 'Missing required command: macmon\n' >&2
+  printf 'Install it with: brew install macmon\n' >&2
+  exit 1
+fi
+
+sed "s|@HOME@|$HOME|g" "$PLIST_TEMPLATE" >"$PLIST_OUTPUT"
+plutil -lint "$PLIST_OUTPUT" >/dev/null
+
+# Same mappings rhysd/dotfiles reads, applied here so setup needs no extra tool.
+while IFS=$'\t' read -r source destination; do
+  destination="${destination/#\~/$HOME}"
+  mkdir -p "$(dirname "$destination")"
+  ln -sfn "$REPO_ROOT/$source" "$destination"
+done < <(jq -r 'to_entries[] | [.key, .value] | @tsv' "$MAPPINGS")
+
+mkdir -p "$(dirname "$OUTPUT_PATH")" "$(dirname "$LOG_PATH")"
+
+launchctl bootout "gui/$UID/$AGENT_LABEL" 2>/dev/null || true
+# Without this a stale file would make the wait below succeed on a dead agent.
+rm -f "$OUTPUT_PATH"
+launchctl bootstrap "gui/$UID" "$HOME/Library/LaunchAgents/$AGENT_LABEL.plist"
+launchctl kickstart -k "gui/$UID/$AGENT_LABEL"
+
+for _ in {1..20}; do
+  if jq -e . "$OUTPUT_PATH" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+if ! jq -e . "$OUTPUT_PATH" >/dev/null 2>&1; then
+  printf 'The agent produced no readable JSON at %s\n' "$OUTPUT_PATH" >&2
+  printf 'Check the log: %s\n' "$LOG_PATH" >&2
+  exit 1
+fi
+
+printf 'Started %s; metrics are written to %s\n' "$AGENT_LABEL" "$OUTPUT_PATH"
+printf 'Register it in RunCat Neo: 設定 → メトリクス → カスタムメトリクス →\n'
+printf 'カスタムメトリクスのソースを追加 → ⌘⇧G で上のパスを入力して選択\n'
+printf 'Logs: %s\n' "$LOG_PATH"
