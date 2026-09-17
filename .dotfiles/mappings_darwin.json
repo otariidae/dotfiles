@@ -1,0 +1,4 @@
+{
+  "dot_local/bin/runcat-machine-temp.sh": "~/.local/bin/runcat-machine-temp.sh",
+  "Library/LaunchAgents/local.runcat-machine-temp.plist": "~/Library/LaunchAgents/local.runcat-machine-temp.plist"
+}
