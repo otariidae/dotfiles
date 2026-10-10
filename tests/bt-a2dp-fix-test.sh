@@ -107,21 +107,29 @@ case "$command_name" in
         ;;
       connect)
         printf 'true\n' >"$BT_TEST_CONNECTED"
-        if [[ "$BT_TEST_MODE" == reconnect_success ]]; then
-          printf 'a2dp-sink-sbc_xq\n' >"$BT_TEST_STATE"
-        else
-          printf 'audio-gateway\n' >"$BT_TEST_STATE"
-        fi
+        case "$BT_TEST_MODE" in
+          reconnect_success|rediscover_success)
+            printf 'a2dp-sink-sbc_xq\n' >"$BT_TEST_STATE"
+            ;;
+          *)
+            printf 'audio-gateway\n' >"$BT_TEST_STATE"
+            ;;
+        esac
         ;;
     esac
     ;;
   systemctl)
-    printf 'a2dp-sink-sbc_xq\n' >"$BT_TEST_STATE"
+    if [[ "$BT_TEST_MODE" != stays_unhealthy ]]; then
+      printf 'a2dp-sink-sbc_xq\n' >"$BT_TEST_STATE"
+    fi
     ;;
   gdbus)
-    printf "/org/bluez/hci0/dev_84_AC_60_30_CF_32: "
-    printf "org.freedesktop.DBus.Properties.PropertiesChanged "
-    printf "('org.bluez.Device1', {'Connected': <true>}, @as [])\n"
+    event_count="${BT_TEST_EVENTS:-1}"
+    for _event in $(seq 1 "$event_count"); do
+      printf "/org/bluez/hci0/dev_84_AC_60_30_CF_32: "
+      printf "org.freedesktop.DBus.Properties.PropertiesChanged "
+      printf "('org.bluez.Device1', {'Connected': <true>}, @as [])\n"
+    done
     ;;
   logger|sleep)
     ;;
@@ -201,5 +209,32 @@ reset_case audio-gateway targeted_success
 "$MONITOR_SCRIPT" || fail "unhealthy monitor event should complete"
 assert_count 1 '^systemctl '
 printf 'ok - unhealthy connection triggers recovery once\n'
+
+reset_case off rediscover_success
+run_success_case "missing profile waits, then reconnects once without ConnectProfile"
+assert_count 0 'ConnectProfile'
+assert_count 1 '^bluetoothctl disconnect '
+assert_count 1 '^bluetoothctl connect '
+
+reset_case off fail
+if "$FIX_SCRIPT"; then
+  fail "missing profile should still fail after one reconnect"
+fi
+connect_profile_line="$(awk '/ConnectProfile/ { print NR; exit }' "$BT_TEST_LOG")"
+disconnect_line="$(awk '/^bluetoothctl disconnect / { print NR; exit }' "$BT_TEST_LOG")"
+[[ -n "$disconnect_line" ]] || fail "missing profile failure should disconnect once"
+if [[ -n "$connect_profile_line" && "$connect_profile_line" -lt "$disconnect_line" ]]; then
+  fail "ConnectProfile ran before the single reconnect"
+fi
+assert_count 1 '^bluetoothctl disconnect '
+assert_count 1 '^bluetoothctl connect '
+printf 'ok - missing profile does not call ConnectProfile before reconnect\n'
+
+BT_TEST_EVENTS=2
+reset_case audio-gateway stays_unhealthy
+"$MONITOR_SCRIPT" || fail "repeated events should complete"
+assert_count 1 '^systemctl '
+unset BT_TEST_EVENTS
+printf 'ok - repeated connect events are suppressed during cooldown\n'
 
 printf 'all bluetooth A2DP tests passed\n'
