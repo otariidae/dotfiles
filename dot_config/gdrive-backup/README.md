@@ -16,16 +16,18 @@
 
 Personal docs therefore live in two places: Drive (cloud) and encrypted NAS (separate box on the LAN). Timeshift is a separate axis for the OS.
 
-## OAuth branding URLs (GitHub Pages)
+## OAuth branding URLs
 
-After `docs/` is published via GitHub Pages:
+Hosted on the verified personal domain (required for Google brand verification):
 
 | Field | URL |
 |---|---|
-| Homepage | https://otariidae.github.io/dotfiles/personal-backup/ |
-| Privacy policy | https://otariidae.github.io/dotfiles/personal-backup/privacy/ |
-| Terms of service | https://otariidae.github.io/dotfiles/personal-backup/terms/ |
-| Authorized domain | `otariidae.github.io` |
+| Homepage | https://otariidae.com/apps/personal-backup/ |
+| Privacy policy | https://otariidae.com/apps/personal-backup/privacy/ |
+| Terms of service | https://otariidae.com/apps/personal-backup/terms/ |
+| Authorized domain | `otariidae.com` |
+
+Verify `otariidae.com` in [Google Search Console](https://search.google.com/search-console) with a Google account that is Owner/Editor on the Cloud project, then wait up to 24 hours before retrying brand verification.
 
 ## How the encrypted NAS copy is viewed
 
