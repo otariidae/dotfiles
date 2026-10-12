@@ -2,8 +2,10 @@
 # Sync Google Drive to encrypted NAS (rclone crypt).
 set -euo pipefail
 
-readonly SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+readonly SCRIPT_PATH
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+readonly SCRIPT_DIR
 # shellcheck source=../lib/gdrive-backup/common.sh
 source "${SCRIPT_DIR}/../lib/gdrive-backup/common.sh"
 
@@ -11,7 +13,7 @@ dry_run=0
 for arg in "$@"; do
   case "$arg" in
     --dry-run) dry_run=1 ;;
-    -h|--help)
+    -h | --help)
       printf 'Usage: %s [--dry-run]\n' "$(basename "$0")"
       exit 0
       ;;

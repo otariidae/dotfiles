@@ -1,0 +1,37 @@
+[tools]
+shellcheck = "latest"
+shfmt = "latest"
+
+[tasks.lint]
+description = "Run shellcheck and shfmt check on bash scripts"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+mapfile -t scripts < <(
+  find bin -type f
+  find dot_local/bin dot_local/lib tests -type f -name '*.sh'
+)
+shellcheck -x -- "${scripts[@]}"
+shfmt -i 2 -ci -bn -d -- "${scripts[@]}"
+"""
+
+[tasks.fmt]
+description = "Format bash scripts with shfmt"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+mapfile -t scripts < <(
+  find bin -type f
+  find dot_local/bin dot_local/lib tests -type f -name '*.sh'
+)
+shfmt -i 2 -ci -bn -w -- "${scripts[@]}"
+"""
+
+[tasks.test]
+description = "Run shell script tests"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+bash tests/bt-a2dp-fix-test.sh
+bash tests/runcat-machine-temp-test.sh
+"""

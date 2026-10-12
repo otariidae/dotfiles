@@ -27,7 +27,7 @@ else
       --gdrive) do_gdrive=1 ;;
       --nas) do_nas=1 ;;
       --crypt) do_crypt=1 ;;
-      -h|--help)
+      -h | --help)
         usage
         exit 0
         ;;
@@ -70,6 +70,8 @@ write_cred() {
 }
 
 if [[ "$do_gdrive" -eq 1 ]]; then
+  client_id=""
+  client_secret=""
   prompt client_id "Google OAuth client_id: "
   prompt client_secret "Google OAuth client_secret: "
   write_cred "$CREDSTORE/gdrive_client_id" "$client_id"
@@ -77,11 +79,14 @@ if [[ "$do_gdrive" -eq 1 ]]; then
 fi
 
 if [[ "$do_nas" -eq 1 ]]; then
+  nas_pass=""
   prompt nas_pass "NAS SMB password: "
   write_cred "$CREDSTORE/nas_pass" "$nas_pass"
 fi
 
 if [[ "$do_crypt" -eq 1 ]]; then
+  crypt_password=""
+  crypt_password2=""
   prompt crypt_password "Crypt password: "
   prompt crypt_password2 "Crypt password2 (salt): "
   write_cred "$CREDSTORE/nas_crypt_password" "$crypt_password"

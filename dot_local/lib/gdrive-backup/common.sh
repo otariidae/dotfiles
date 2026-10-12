@@ -34,9 +34,16 @@ gdrive_backup_require_rclone() {
     return
   fi
   local candidate
-  candidate="$(ls -1d "${HOME}/.local/share/mise/installs/rclone/"*/rclone-*/rclone 2>/dev/null | sort -V | tail -1 || true)"
+  local candidate_dir
+  candidate="$(
+    find "${HOME}/.local/share/mise/installs/rclone" \
+      -type f -path '*/rclone-*/rclone' 2>/dev/null \
+      | sort -V \
+      | tail -1 || true
+  )"
   if [[ -n "$candidate" && -x "$candidate" ]]; then
-    export PATH="$(dirname "$candidate"):${PATH}"
+    candidate_dir="$(dirname "$candidate")"
+    export PATH="${candidate_dir}:${PATH}"
   fi
   if ! command -v rclone >/dev/null; then
     gdrive_backup_log "rclone not found. Install with mise (see dot_config/mise/config.toml) and re-login, or: mise install"

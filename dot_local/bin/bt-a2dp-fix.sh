@@ -2,8 +2,10 @@
 # Recover a Bluetooth headset from Audio Gateway / HFP after reconnect.
 set -euo pipefail
 
-readonly SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+readonly SCRIPT_PATH
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+readonly SCRIPT_DIR
 # shellcheck source=../lib/bt-a2dp-fix/common.sh
 source "${SCRIPT_DIR}/../lib/bt-a2dp-fix/common.sh"
 
@@ -100,7 +102,7 @@ bt_a2dp_fix_wait_for_healthy_profile() {
 # audio-gateway / A2DP Source occupies the shared AVDTP session.
 bt_a2dp_fix_is_wrong_direction() {
   case "$1" in
-    audio-gateway|a2dp-source|a2dp-source-*|a2dp_source|a2dp_source_*) return 0 ;;
+    audio-gateway | a2dp-source | a2dp-source-* | a2dp_source | a2dp_source_*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -109,15 +111,15 @@ bt_a2dp_fix_recover_wrong_direction() {
   bt_a2dp_fix_set_profile off || true
   sleep 2
 
-  if bt_a2dp_fix_select_available_profile &&
-    bt_a2dp_fix_wait_for_healthy_profile; then
+  if bt_a2dp_fix_select_available_profile \
+    && bt_a2dp_fix_wait_for_healthy_profile; then
     return 0
   fi
 
   bt_a2dp_fix_log "replacing A2DP source with sink profile"
-  if bt_a2dp_fix_switch_bluez_to_a2dp_sink &&
-    bt_a2dp_fix_wait_and_select_profile &&
-    bt_a2dp_fix_wait_for_healthy_profile; then
+  if bt_a2dp_fix_switch_bluez_to_a2dp_sink \
+    && bt_a2dp_fix_wait_and_select_profile \
+    && bt_a2dp_fix_wait_for_healthy_profile; then
     return 0
   fi
 

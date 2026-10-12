@@ -1,0 +1,4 @@
+# https://www.shellcheck.net/wiki/Directive
+shell=bash
+# Resolve `# shellcheck source=…` paths relative to each script, not cwd.
+source-path=SCRIPTDIR

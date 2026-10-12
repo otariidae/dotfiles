@@ -2,7 +2,8 @@
 # Configure Google Drive → encrypted NAS backup: remotes, links, timer.
 set -euo pipefail
 
-readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly REPO_ROOT
 readonly CONFIG_DIR="$REPO_ROOT/dot_config/gdrive-backup"
 readonly CONFIG="$CONFIG_DIR/config"
 readonly CONFIG_EXAMPLE="$CONFIG_DIR/config.example"
@@ -13,7 +14,7 @@ for arg in "$@"; do
   case "$arg" in
     --skip-remotes) skip_remotes=1 ;;
     --skip-timer) skip_timer=1 ;;
-    -h|--help)
+    -h | --help)
       cat <<'EOF'
 Usage: bin/setup-gdrive-backup [--skip-remotes] [--skip-timer]
 

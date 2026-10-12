@@ -2,8 +2,10 @@
 # Trigger bt-a2dp-fix when BlueZ reports that the configured device connected.
 set -euo pipefail
 
-readonly SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+readonly SCRIPT_PATH
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+readonly SCRIPT_DIR
 # shellcheck source=../lib/bt-a2dp-fix/common.sh
 source "${SCRIPT_DIR}/../lib/bt-a2dp-fix/common.sh"
 
@@ -27,7 +29,7 @@ bt_a2dp_monitor_trigger() {
   local now
 
   now="$(date +%s)"
-  if (( now < bt_a2dp_monitor_cooldown_until )); then
+  if ((now < bt_a2dp_monitor_cooldown_until)); then
     bt_a2dp_fix_log "suppress retrigger reason=$reason"
     return
   fi
@@ -48,7 +50,7 @@ bt_a2dp_monitor_trigger() {
   fi
   # The recovery connect emits another Connected signal. Acting on it
   # immediately starts a second disconnect cycle.
-  bt_a2dp_monitor_cooldown_until="$(( $(date +%s) + 20 ))"
+  bt_a2dp_monitor_cooldown_until="$(($(date +%s) + 20))"
 }
 
 if bt_a2dp_monitor_is_connected; then

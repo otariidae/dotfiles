@@ -2,8 +2,10 @@
 # Mount the encrypted NAS Google Drive backup as a decrypted folder.
 set -euo pipefail
 
-readonly SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+readonly SCRIPT_PATH
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+readonly SCRIPT_DIR
 # shellcheck source=../lib/gdrive-backup/common.sh
 source "${SCRIPT_DIR}/../lib/gdrive-backup/common.sh"
 

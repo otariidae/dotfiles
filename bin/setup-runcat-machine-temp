@@ -3,7 +3,8 @@
 # agent, link dotfiles, start the agent.
 set -euo pipefail
 
-readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly REPO_ROOT
 readonly MAPPINGS="$REPO_ROOT/.dotfiles/mappings_darwin.json"
 readonly PLIST_TEMPLATE="$REPO_ROOT/Library/LaunchAgents/local.runcat-machine-temp.plist.in"
 readonly PLIST_OUTPUT="${PLIST_TEMPLATE%.in}"

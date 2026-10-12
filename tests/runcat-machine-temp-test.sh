@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly REPO_ROOT
 readonly SCRIPT="$REPO_ROOT/dot_local/bin/runcat-machine-temp.sh"
 
 test_dir="$(mktemp -d)"
@@ -50,8 +51,8 @@ assert_json() {
   local actual
 
   actual="$(jq -r "$filter" "$RUNCAT_TEMP_OUTPUT")"
-  [[ "$actual" == "$expected" ]] ||
-    fail "$name: expected '$expected' for '$filter', got '$actual'"
+  [[ "$actual" == "$expected" ]] \
+    || fail "$name: expected '$expected' for '$filter', got '$actual'"
 }
 
 export MACMON_TEST_MODE=ok
@@ -93,21 +94,21 @@ printf 'ok - machines without a running fan omit the fan row\n'
 
 previous="$(cat "$RUNCAT_TEMP_OUTPUT")"
 printf '{"fans": [], "memory": {"ram_total": 1}}\n' >"$MACMON_TEST_SAMPLE"
-"$SCRIPT" 2>/dev/null &&
-  fail "a sample without temperatures should return non-zero"
-[[ "$(cat "$RUNCAT_TEMP_OUTPUT")" == "$previous" ]] ||
-  fail "a sample without temperatures should leave the previous file in place"
+"$SCRIPT" 2>/dev/null \
+  && fail "a sample without temperatures should return non-zero"
+[[ "$(cat "$RUNCAT_TEMP_OUTPUT")" == "$previous" ]] \
+  || fail "a sample without temperatures should leave the previous file in place"
 printf 'ok - a sample without temperatures is refused\n'
 
-MACMON_TEST_MODE=fail "$SCRIPT" 2>/dev/null &&
-  fail "a macmon failure should return non-zero"
-[[ "$(cat "$RUNCAT_TEMP_OUTPUT")" == "$previous" ]] ||
-  fail "a macmon failure should leave the previous file in place"
-[[ -z "$(find "$(dirname "$RUNCAT_TEMP_OUTPUT")" -name '.machine-temp.json.*')" ]] ||
-  fail "a macmon failure should leave no temporary file behind"
+MACMON_TEST_MODE=fail "$SCRIPT" 2>/dev/null \
+  && fail "a macmon failure should return non-zero"
+[[ "$(cat "$RUNCAT_TEMP_OUTPUT")" == "$previous" ]] \
+  || fail "a macmon failure should leave the previous file in place"
+[[ -z "$(find "$(dirname "$RUNCAT_TEMP_OUTPUT")" -name '.machine-temp.json.*')" ]] \
+  || fail "a macmon failure should leave no temporary file behind"
 printf 'ok - a macmon failure keeps the last good file\n'
 
 set_sample 62.0 60.0 '[]'
-RUNCAT_TEMP_WARN=90 RUNCAT_TEMP_HOT=85 "$SCRIPT" 2>/dev/null &&
-  fail "inverted thresholds should return non-zero"
+RUNCAT_TEMP_WARN=90 RUNCAT_TEMP_HOT=85 "$SCRIPT" 2>/dev/null \
+  && fail "inverted thresholds should return non-zero"
 printf 'ok - inverted thresholds are rejected\n'
