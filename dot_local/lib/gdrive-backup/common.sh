@@ -44,39 +44,80 @@ gdrive_backup_require_rclone() {
   fi
 }
 
-# Load Google OAuth client id/secret into rclone env overrides.
-# Prefer systemd $CREDENTIALS_DIRECTORY; fall back to ~/.config/credstore for CLI runs.
-# File names: gdrive_client_id, gdrive_client_secret
-gdrive_backup_load_systemd_credentials() {
+gdrive_backup_remote_env_prefix() {
+  # nas-crypt -> NAS_CRYPT (rclone maps '-' to '_' in RCLONE_CONFIG_* names)
+  printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr '-' '_'
+}
+
+gdrive_backup_cred_path() {
+  local name="$1"
   local cred_dir="${CREDENTIALS_DIRECTORY:-}"
   local store_dir="${XDG_CONFIG_HOME:-$HOME/.config}/credstore"
-  local remote_upper id_file secret_file
-  local client_id="" client_secret=""
 
-  remote_upper="$(printf '%s' "${GDRIVE_REMOTE:-gdrive}" | tr '[:lower:]' '[:upper:]' | tr -c 'A-Z0-9' '_')"
+  if [[ -n "$cred_dir" && -d "$cred_dir" && -f "${cred_dir}/${name}" ]]; then
+    printf '%s\n' "${cred_dir}/${name}"
+  elif [[ -f "${store_dir}/${name}" ]]; then
+    printf '%s\n' "${store_dir}/${name}"
+  fi
+}
 
-  if [[ -n "$cred_dir" && -d "$cred_dir" ]]; then
-    id_file="${cred_dir}/gdrive_client_id"
-    secret_file="${cred_dir}/gdrive_client_secret"
-  else
-    id_file="${store_dir}/gdrive_client_id"
-    secret_file="${store_dir}/gdrive_client_secret"
+gdrive_backup_read_cred() {
+  local path="$1"
+  local value
+  if [[ -z "$path" || ! -f "$path" ]]; then
+    return 1
+  fi
+  value="$(<"$path")"
+  value="${value//$'\n'/}"
+  printf '%s' "$value"
+}
+
+gdrive_backup_export_obscured() {
+  local env_name="$1"
+  local plain="$2"
+  local obscured
+  obscured="$(printf '%s' "$plain" | rclone obscure -)"
+  export "${env_name}=${obscured}"
+}
+
+# Load secrets from systemd $CREDENTIALS_DIRECTORY (or ~/.config/credstore fallback).
+# Files (plaintext, mode 600):
+#   gdrive_client_id, gdrive_client_secret
+#   nas_pass
+#   nas_crypt_password, nas_crypt_password2
+#
+# Passwords use backend envs (RCLONE_SMB_PASS / RCLONE_CRYPT_PASSWORD*), not
+# RCLONE_CONFIG_<remote>_*: hyphenated remotes like nas-crypt do not reliably
+# match RCLONE_CONFIG_NAS_CRYPT_* (rclone#8668-class issues).
+gdrive_backup_load_systemd_credentials() {
+  local gdrive_prefix
+  local path plain
+
+  gdrive_prefix="$(gdrive_backup_remote_env_prefix "${GDRIVE_REMOTE:-gdrive}")"
+
+  path="$(gdrive_backup_cred_path gdrive_client_id || true)"
+  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+    export "RCLONE_CONFIG_${gdrive_prefix}_CLIENT_ID=$plain"
   fi
 
-  if [[ -f "$id_file" ]]; then
-    client_id="$(<"$id_file")"
-    client_id="${client_id//$'\n'/}"
-  fi
-  if [[ -f "$secret_file" ]]; then
-    client_secret="$(<"$secret_file")"
-    client_secret="${client_secret//$'\n'/}"
+  path="$(gdrive_backup_cred_path gdrive_client_secret || true)"
+  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+    export "RCLONE_CONFIG_${gdrive_prefix}_CLIENT_SECRET=$plain"
   fi
 
-  if [[ -n "$client_id" ]]; then
-    export "RCLONE_CONFIG_${remote_upper}_CLIENT_ID=$client_id"
+  path="$(gdrive_backup_cred_path nas_pass || true)"
+  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+    gdrive_backup_export_obscured RCLONE_SMB_PASS "$plain"
   fi
-  if [[ -n "$client_secret" ]]; then
-    export "RCLONE_CONFIG_${remote_upper}_CLIENT_SECRET=$client_secret"
+
+  path="$(gdrive_backup_cred_path nas_crypt_password || true)"
+  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+    gdrive_backup_export_obscured RCLONE_CRYPT_PASSWORD "$plain"
+  fi
+
+  path="$(gdrive_backup_cred_path nas_crypt_password2 || true)"
+  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+    gdrive_backup_export_obscured RCLONE_CRYPT_PASSWORD2 "$plain"
   fi
 }
 

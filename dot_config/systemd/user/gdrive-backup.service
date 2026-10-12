@@ -5,6 +5,9 @@ Wants=network-online.target
 ConditionPathExists=%h/.config/gdrive-backup/config
 ConditionPathExists=%h/.config/credstore/gdrive_client_id
 ConditionPathExists=%h/.config/credstore/gdrive_client_secret
+ConditionPathExists=%h/.config/credstore/nas_pass
+ConditionPathExists=%h/.config/credstore/nas_crypt_password
+ConditionPathExists=%h/.config/credstore/nas_crypt_password2
 
 [Service]
 Type=oneshot
@@ -16,6 +19,9 @@ Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/usr/local/bin:/usr/bi
 # on this systemd version (exit 243/CREDENTIALS).
 LoadCredential=gdrive_client_id:%h/.config/credstore/gdrive_client_id
 LoadCredential=gdrive_client_secret:%h/.config/credstore/gdrive_client_secret
+LoadCredential=nas_pass:%h/.config/credstore/nas_pass
+LoadCredential=nas_crypt_password:%h/.config/credstore/nas_crypt_password
+LoadCredential=nas_crypt_password2:%h/.config/credstore/nas_crypt_password2
 ExecStart=%h/.local/bin/gdrive-backup.sh
 Nice=10
 IOSchedulingClass=best-effort

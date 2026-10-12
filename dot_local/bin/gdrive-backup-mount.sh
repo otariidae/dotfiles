@@ -9,6 +9,7 @@ source "${SCRIPT_DIR}/../lib/gdrive-backup/common.sh"
 
 gdrive_backup_load_config
 gdrive_backup_require_rclone
+gdrive_backup_load_systemd_credentials
 gdrive_backup_require_remote "$CRYPT_REMOTE"
 
 if ! command -v fusermount3 >/dev/null && ! command -v fusermount >/dev/null; then
