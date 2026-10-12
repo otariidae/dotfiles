@@ -1,10 +1,44 @@
 #!/usr/bin/env bash
-# Store Google OAuth client id/secret for gdrive-backup.service (systemd LoadCredential=).
+# Store secrets for gdrive-backup.service (systemd LoadCredential=).
+# Writes plaintext files under ~/.config/credstore (mode 600).
 set -euo pipefail
 
 readonly CREDSTORE="${XDG_CONFIG_HOME:-$HOME/.config}/credstore"
-readonly ID_PATH="$CREDSTORE/gdrive_client_id"
-readonly SECRET_PATH="$CREDSTORE/gdrive_client_secret"
+
+do_gdrive=0
+do_nas=0
+do_crypt=0
+
+usage() {
+  cat <<'EOF'
+Usage: bin/gdrive-backup-store-creds [--gdrive] [--nas] [--crypt]
+
+With no flags, prompts for all credential groups.
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+  do_gdrive=1
+  do_nas=1
+  do_crypt=1
+else
+  for arg in "$@"; do
+    case "$arg" in
+      --gdrive) do_gdrive=1 ;;
+      --nas) do_nas=1 ;;
+      --crypt) do_crypt=1 ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        printf 'Unknown argument: %s\n' "$arg" >&2
+        usage >&2
+        exit 2
+        ;;
+    esac
+  done
+fi
 
 mkdir -p "$CREDSTORE"
 chmod 700 "$CREDSTORE"
@@ -27,15 +61,33 @@ prompt() {
   printf -v "$var_name" '%s' "$value"
 }
 
-prompt client_id "Google OAuth client_id: "
-prompt client_secret "Google OAuth client_secret: "
+write_cred() {
+  local path="$1"
+  local value="$2"
+  printf '%s' "$value" >"$path"
+  chmod 600 "$path"
+  printf 'Wrote %s\n' "$path"
+}
 
-# No trailing newline — rclone client strings must be exact.
-printf '%s' "$client_id" >"$ID_PATH"
-printf '%s' "$client_secret" >"$SECRET_PATH"
-chmod 600 "$ID_PATH" "$SECRET_PATH"
+if [[ "$do_gdrive" -eq 1 ]]; then
+  prompt client_id "Google OAuth client_id: "
+  prompt client_secret "Google OAuth client_secret: "
+  write_cred "$CREDSTORE/gdrive_client_id" "$client_id"
+  write_cred "$CREDSTORE/gdrive_client_secret" "$client_secret"
+fi
 
-printf 'Wrote:\n  %s\n  %s\n' "$ID_PATH" "$SECRET_PATH"
+if [[ "$do_nas" -eq 1 ]]; then
+  prompt nas_pass "NAS SMB password: "
+  write_cred "$CREDSTORE/nas_pass" "$nas_pass"
+fi
+
+if [[ "$do_crypt" -eq 1 ]]; then
+  prompt crypt_password "Crypt password: "
+  prompt crypt_password2 "Crypt password2 (salt): "
+  write_cred "$CREDSTORE/nas_crypt_password" "$crypt_password"
+  write_cred "$CREDSTORE/nas_crypt_password2" "$crypt_password2"
+fi
+
 printf 'Reload and test:\n'
 printf '  systemctl --user daemon-reload\n'
 printf '  systemctl --user start gdrive-backup.service\n'
