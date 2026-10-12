@@ -2,7 +2,8 @@
 # Configure Bluetooth A2DP fix: generate WirePlumber snippet, link dotfiles, enable services.
 set -euo pipefail
 
-readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly REPO_ROOT
 readonly CONFIG="$REPO_ROOT/dot_config/bt-a2dp-fix/config"
 readonly CONFIG_EXAMPLE="$REPO_ROOT/dot_config/bt-a2dp-fix/config.example"
 readonly DEVICE_TEMPLATE="$REPO_ROOT/dot_config/wireplumber/bluetooth.lua.d/51-bluetooth-a2dp-device.lua.in"
@@ -19,8 +20,8 @@ for cmd in "${required_commands[@]}"; do
 done
 
 wireplumber_version="$(
-  wireplumber --version |
-    awk '{
+  wireplumber --version \
+    | awk '{
       for (i = 1; i <= NF; i++) {
         if ($i ~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/) {
           print $i

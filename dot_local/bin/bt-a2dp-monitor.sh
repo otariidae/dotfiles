@@ -2,8 +2,10 @@
 # Trigger bt-a2dp-fix when BlueZ reports that the configured device connected.
 set -euo pipefail
 
-readonly SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-readonly SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+readonly SCRIPT_PATH
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+readonly SCRIPT_DIR
 # shellcheck source=../lib/bt-a2dp-fix/common.sh
 source "${SCRIPT_DIR}/../lib/bt-a2dp-fix/common.sh"
 
@@ -47,8 +49,8 @@ bt_a2dp_fix_log "monitoring BlueZ connection events path=$BT_DEVICE_PATH"
 LC_ALL=C gdbus monitor \
   --system \
   --dest org.bluez \
-  --object-path "$BT_DEVICE_PATH" |
-  while IFS= read -r event; do
+  --object-path "$BT_DEVICE_PATH" \
+  | while IFS= read -r event; do
     case "$event" in
       *org.bluez.Device1*"'Connected': <true>"*)
         bt_a2dp_monitor_trigger connected

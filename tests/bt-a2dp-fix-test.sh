@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly REPO_ROOT
 readonly FIX_SCRIPT="$REPO_ROOT/dot_local/bin/bt-a2dp-fix.sh"
 readonly MONITOR_SCRIPT="$REPO_ROOT/dot_local/bin/bt-a2dp-monitor.sh"
 readonly TEST_MAC="84:AC:60:30:CF:32"
@@ -147,8 +148,8 @@ assert_count() {
   local actual
 
   actual="$(awk -v pattern="$pattern" '$0 ~ pattern { count++ } END { print count + 0 }' "$BT_TEST_LOG")"
-  [[ "$actual" == "$expected" ]] ||
-    fail "expected $expected matches for '$pattern', got $actual"
+  [[ "$actual" == "$expected" ]] \
+    || fail "expected $expected matches for '$pattern', got $actual"
 }
 
 reset_case() {

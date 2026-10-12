@@ -46,6 +46,8 @@ bt_a2dp_fix_load_config() {
 
   BT_CARD="bluez_card.${BT_MAC//:/_}"
   BT_SINK_PREFIX="bluez_output.${BT_MAC//:/_}"
+  # Consumed by scripts that source this file (e.g. busctl / gdbus paths).
+  # shellcheck disable=SC2034
   BT_DEVICE_PATH="/org/bluez/${BT_ADAPTER}/dev_${BT_MAC//:/_}"
 }
 
@@ -77,7 +79,7 @@ bt_a2dp_fix_has_profile() {
 
 bt_a2dp_fix_is_a2dp_profile() {
   case "$1" in
-    a2dp-sink|a2dp-sink-*|a2dp_sink|a2dp_sink_*) return 0 ;;
+    a2dp-sink | a2dp-sink-* | a2dp_sink | a2dp_sink_*) return 0 ;;
     *) return 1 ;;
   esac
 }

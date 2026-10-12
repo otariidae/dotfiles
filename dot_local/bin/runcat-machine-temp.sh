@@ -39,7 +39,8 @@ if ! awk -v warn="$TEMP_WARN" -v hot="$TEMP_HOT" \
   exit 1
 fi
 
-readonly OUTPUT_DIR="$(dirname "$OUTPUT_PATH")"
+OUTPUT_DIR="$(dirname "$OUTPUT_PATH")"
+readonly OUTPUT_DIR
 mkdir -p "$OUTPUT_DIR"
 
 sample="$(macmon pipe --samples 1 --interval "$SAMPLE_INTERVAL" | tail -n 1)"
