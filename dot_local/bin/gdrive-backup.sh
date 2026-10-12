@@ -24,6 +24,7 @@ done
 
 gdrive_backup_load_config
 gdrive_backup_require_rclone
+gdrive_backup_load_systemd_credentials
 gdrive_backup_require_remote "$GDRIVE_REMOTE"
 gdrive_backup_require_remote "$CRYPT_REMOTE"
 
@@ -39,6 +40,7 @@ backup_dir="${CRYPT_REMOTE}:${CRYPT_TRASH_PREFIX}/${stamp}"
 cmd=(
   rclone sync "$src" "$dst"
   --backup-dir="$backup_dir"
+  --drive-skip-dangling-shortcuts
   --checkers="$RCLONE_CHECKERS"
   --transfers="$RCLONE_TRANSFERS"
   --log-file="$log_file"
