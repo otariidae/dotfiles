@@ -46,8 +46,6 @@ rclone ls nas-crypt:gdrive
 rclone copy nas-crypt:gdrive/some/path ./restore-tmp
 ```
 
-The crypt passphrase lives in `~/.config/rclone/rclone.conf`. Store a copy in a password manager; without it the NAS copy is not recoverable.
-
 Do not browse the backup via the NAS web UI as plaintext.
 
 ## Setup
@@ -58,24 +56,9 @@ Do not browse the backup via the NAS web UI as plaintext.
    bin/setup-gdrive-backup
    ```
 
-2. The setup script creates `~/.config/gdrive-backup/config` from the example if needed, ensures rclone remotes `gdrive`, `nas`, and `nas-crypt` exist (interactive prompts for OAuth / SMB / crypt secrets), links systemd units, and enables the daily timer.
+2. Ensure rclone remotes `gdrive`, `nas`, and `nas-crypt` exist (OAuth / SMB / crypt). Secrets stay in `~/.config/rclone/rclone.conf` only — never in this repo. Prefer your own Google OAuth client with scope `drive.readonly`.
 
-   Optional non-interactive secrets:
-
-   ```bash
-   export GDRIVE_BACKUP_SMB_PASSWORD='...'
-   export GDRIVE_BACKUP_CRYPT_PASSWORD='...'
-   export GDRIVE_BACKUP_CRYPT_PASSWORD2='...'
-   bin/setup-gdrive-backup
-   ```
-
-   Google Drive needs a one-time browser OAuth (`rclone config reconnect gdrive:` if skipped). Prefer your own OAuth `client_id` with scope `drive.readonly`.
-
-   rclone warns that its shared Google `client_id` is being retired during 2026. Create [your own client_id](https://rclone.org/drive/#making-your-own-client-id).
-
-3. Secrets stay only in `~/.config/rclone/rclone.conf` (never in this repo).
-
-4. First sync:
+3. First sync:
 
    ```bash
    gdrive-backup.sh --dry-run

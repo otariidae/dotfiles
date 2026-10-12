@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Store Google OAuth client id/secret for gdrive-backup.service (systemd LoadCredential=).
+set -euo pipefail
+
+readonly CREDSTORE="${XDG_CONFIG_HOME:-$HOME/.config}/credstore"
+readonly ID_PATH="$CREDSTORE/gdrive_client_id"
+readonly SECRET_PATH="$CREDSTORE/gdrive_client_secret"
+
+mkdir -p "$CREDSTORE"
+chmod 700 "$CREDSTORE"
+
+prompt() {
+  local var_name="$1"
+  local label="$2"
+  local value=""
+  if [[ -t 0 ]]; then
+    read -r -s -p "$label" value
+    printf '\n'
+  else
+    printf 'Need a TTY to read %s securely.\n' "$var_name" >&2
+    exit 1
+  fi
+  if [[ -z "$value" ]]; then
+    printf 'Empty %s; aborting.\n' "$var_name" >&2
+    exit 1
+  fi
+  printf -v "$var_name" '%s' "$value"
+}
+
+prompt client_id "Google OAuth client_id: "
+prompt client_secret "Google OAuth client_secret: "
+
+# No trailing newline — rclone client strings must be exact.
+printf '%s' "$client_id" >"$ID_PATH"
+printf '%s' "$client_secret" >"$SECRET_PATH"
+chmod 600 "$ID_PATH" "$SECRET_PATH"
+
+printf 'Wrote:\n  %s\n  %s\n' "$ID_PATH" "$SECRET_PATH"
+printf 'Reload and test:\n'
+printf '  systemctl --user daemon-reload\n'
+printf '  systemctl --user start gdrive-backup.service\n'
+printf '  systemctl --user status gdrive-backup.service\n'
