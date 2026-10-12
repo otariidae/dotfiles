@@ -21,9 +21,18 @@ bt_a2dp_monitor_is_connected() {
   )" == "b true" ]]
 }
 
+bt_a2dp_monitor_cooldown_until=0
+
 bt_a2dp_monitor_trigger() {
   local reason="$1"
   local profile
+  local now
+
+  now="$(date +%s)"
+  if ((now < bt_a2dp_monitor_cooldown_until)); then
+    bt_a2dp_fix_log "suppress retrigger reason=$reason"
+    return
+  fi
 
   sleep "$BT_PROFILE_GRACE"
   if ! bt_a2dp_monitor_is_connected; then
@@ -39,6 +48,9 @@ bt_a2dp_monitor_trigger() {
   if ! systemctl --user start bt-a2dp-fix.service; then
     bt_a2dp_fix_log "recovery service failed"
   fi
+  # The recovery connect emits another Connected signal. Acting on it
+  # immediately starts a second disconnect cycle.
+  bt_a2dp_monitor_cooldown_until="$(($(date +%s) + 20))"
 }
 
 if bt_a2dp_monitor_is_connected; then
@@ -46,14 +58,15 @@ if bt_a2dp_monitor_is_connected; then
 fi
 
 bt_a2dp_fix_log "monitoring BlueZ connection events path=$BT_DEVICE_PATH"
-LC_ALL=C gdbus monitor \
-  --system \
-  --dest org.bluez \
-  --object-path "$BT_DEVICE_PATH" \
-  | while IFS= read -r event; do
-    case "$event" in
-      *org.bluez.Device1*"'Connected': <true>"*)
-        bt_a2dp_monitor_trigger connected
-        ;;
-    esac
-  done
+while IFS= read -r event; do
+  case "$event" in
+    *org.bluez.Device1*"'Connected': <true>"*)
+      bt_a2dp_monitor_trigger connected
+      ;;
+  esac
+done < <(
+  LC_ALL=C gdbus monitor \
+    --system \
+    --dest org.bluez \
+    --object-path "$BT_DEVICE_PATH"
+)

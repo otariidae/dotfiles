@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+# Configure Google Drive → encrypted NAS backup: remotes, links, timer.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+readonly REPO_ROOT
+readonly CONFIG_DIR="$REPO_ROOT/dot_config/gdrive-backup"
+readonly CONFIG="$CONFIG_DIR/config"
+readonly CONFIG_EXAMPLE="$CONFIG_DIR/config.example"
+
+skip_remotes=0
+skip_timer=0
+for arg in "$@"; do
+  case "$arg" in
+    --skip-remotes) skip_remotes=1 ;;
+    --skip-timer) skip_timer=1 ;;
+    -h | --help)
+      cat <<'EOF'
+Usage: bin/setup-gdrive-backup [--skip-remotes] [--skip-timer]
+
+Installs/links gdrive-backup units, ensures rclone remotes exist
+(gdrive / nas / nas-crypt), and enables the daily timer.
+
+Secrets are written only to ~/.config/rclone/rclone.conf.
+
+Optional env for non-interactive secrets:
+  GDRIVE_BACKUP_SMB_PASSWORD
+  GDRIVE_BACKUP_CRYPT_PASSWORD
+  GDRIVE_BACKUP_CRYPT_PASSWORD2
+EOF
+      exit 0
+      ;;
+    *)
+      printf 'Unknown argument: %s\n' "$arg" >&2
+      exit 2
+      ;;
+  esac
+done
+
+required_commands=(dotfiles systemctl)
+for cmd in "${required_commands[@]}"; do
+  if ! command -v "$cmd" >/dev/null; then
+    printf 'Missing required command: %s\n' "$cmd" >&2
+    exit 1
+  fi
+done
+
+if ! command -v rclone >/dev/null; then
+  if command -v mise >/dev/null; then
+    printf 'rclone not on PATH; installing via mise...\n'
+    (cd "$HOME" && mise install rclone)
+    # shellcheck disable=SC1091
+    eval "$(mise activate bash)"
+  fi
+fi
+if ! command -v rclone >/dev/null; then
+  printf 'rclone not found. Add it to mise and ensure shims are on PATH.\n' >&2
+  exit 1
+fi
+
+if ! command -v fusermount3 >/dev/null && ! command -v fusermount >/dev/null; then
+  printf 'Missing fusermount3 (package fuse3) required for mount helper.\n' >&2
+  exit 1
+fi
+
+if [[ ! -f "$CONFIG" ]]; then
+  cp "$CONFIG_EXAMPLE" "$CONFIG"
+  printf 'Created %s from example.\n' "$CONFIG"
+fi
+
+# shellcheck source=/dev/null
+source "$CONFIG"
+: "${GDRIVE_REMOTE:=gdrive}"
+: "${NAS_REMOTE:=nas}"
+: "${CRYPT_REMOTE:=nas-crypt}"
+: "${NAS_HOST:=as1102t-d5f3.local}"
+: "${NAS_USER:=kazuki}"
+: "${NAS_CRYPT_DIR:=kazuki/Backups/gdrive-crypt}"
+: "${MOUNT_POINT:=${HOME}/mnt/gdrive-backup}"
+
+remote_exists() {
+  rclone listremotes 2>/dev/null | grep -qx "$1:"
+}
+
+prompt_secret() {
+  local var_name="$1"
+  local prompt="$2"
+  local env_name="$3"
+  local value=""
+
+  if [[ -n "${env_name}" && -n "${!env_name:-}" ]]; then
+    value="${!env_name}"
+    printf '(using %s from environment)\n' "$env_name"
+  elif [[ -t 0 ]]; then
+    read -r -s -p "$prompt" value
+    printf '\n'
+  else
+    printf 'Need %s but stdin is not a TTY. Re-run in a terminal or set %s.\n' \
+      "$var_name" "$env_name" >&2
+    exit 1
+  fi
+  printf -v "$var_name" '%s' "$value"
+}
+
+ensure_gdrive_remote() {
+  if ! remote_exists "$GDRIVE_REMOTE"; then
+    printf 'Creating Google Drive remote "%s"...\n' "$GDRIVE_REMOTE"
+    rclone config create "$GDRIVE_REMOTE" drive \
+      scope=drive.readonly \
+      config_is_local=true
+  else
+    printf 'Remote %s: already present.\n' "$GDRIVE_REMOTE"
+  fi
+
+  if rclone lsd "${GDRIVE_REMOTE}:" >/dev/null 2>&1; then
+    printf 'Remote %s: OAuth OK.\n' "$GDRIVE_REMOTE"
+    return
+  fi
+
+  printf 'Google Drive OAuth required for "%s".\n' "$GDRIVE_REMOTE"
+  printf 'Prefer your own client_id with scope drive.readonly before reconnecting.\n'
+  printf 'A browser window should open; sign in with the personal Google account.\n'
+  if [[ -t 0 ]]; then
+    rclone config reconnect "${GDRIVE_REMOTE}:"
+  else
+    printf 'No TTY here. In your own terminal run:\n' >&2
+    printf '  rclone config reconnect %s:\n' "$GDRIVE_REMOTE" >&2
+    exit 1
+  fi
+}
+
+ensure_nas_remote() {
+  if remote_exists "$NAS_REMOTE"; then
+    printf 'Remote %s: already present.\n' "$NAS_REMOTE"
+    return
+  fi
+
+  local nas_pass obscured
+  printf 'Creating SMB remote "%s" (%s@%s; crypt path %s)...\n' \
+    "$NAS_REMOTE" "$NAS_USER" "$NAS_HOST" "$NAS_CRYPT_DIR"
+  prompt_secret nas_pass "SMB password for ${NAS_USER}@${NAS_HOST}: " GDRIVE_BACKUP_SMB_PASSWORD
+  if [[ -z "$nas_pass" ]]; then
+    printf 'SMB password is required.\n' >&2
+    exit 1
+  fi
+  obscured="$(rclone obscure "$nas_pass")"
+  rclone config create "$NAS_REMOTE" smb \
+    host="$NAS_HOST" \
+    user="$NAS_USER" \
+    pass="$obscured"
+}
+
+ensure_crypt_remote() {
+  if remote_exists "$CRYPT_REMOTE"; then
+    printf 'Remote %s: already present.\n' "$CRYPT_REMOTE"
+    return
+  fi
+
+  if ! remote_exists "$NAS_REMOTE"; then
+    printf 'NAS remote %s missing; create it first.\n' "$NAS_REMOTE" >&2
+    exit 1
+  fi
+
+  local pw1 pw2 pw1_obs pw2_obs
+  printf 'Creating crypt remote "%s" over %s:%s\n' \
+    "$CRYPT_REMOTE" "$NAS_REMOTE" "$NAS_CRYPT_DIR"
+  printf 'Store this passphrase in a password manager; losing it means the NAS copy cannot be decrypted.\n'
+  prompt_secret pw1 "Crypt password: " GDRIVE_BACKUP_CRYPT_PASSWORD
+  prompt_secret pw2 "Crypt password (salt / password2, can differ): " GDRIVE_BACKUP_CRYPT_PASSWORD2
+  if [[ -z "$pw1" || -z "$pw2" ]]; then
+    printf 'Both crypt passwords are required.\n' >&2
+    exit 1
+  fi
+
+  rclone mkdir "${NAS_REMOTE}:${NAS_CRYPT_DIR}" 2>/dev/null || true
+  pw1_obs="$(rclone obscure "$pw1")"
+  pw2_obs="$(rclone obscure "$pw2")"
+  rclone config create "$CRYPT_REMOTE" crypt \
+    "remote=${NAS_REMOTE}:${NAS_CRYPT_DIR}" \
+    password="$pw1_obs" \
+    password2="$pw2_obs" \
+    filename_encryption=standard \
+    directory_name_encryption=true
+}
+
+if [[ "$skip_remotes" -eq 0 ]]; then
+  ensure_gdrive_remote
+  ensure_nas_remote
+  ensure_crypt_remote
+else
+  printf 'Skipping remote creation (--skip-remotes).\n'
+fi
+
+link_targets=(
+  dot_config/gdrive-backup/config
+  dot_config/systemd/user/gdrive-backup.service
+  dot_config/systemd/user/gdrive-backup.timer
+  dot_local/bin/gdrive-backup.sh
+  dot_local/bin/gdrive-backup-mount.sh
+  dot_local/bin/gdrive-backup-umount.sh
+  dot_local/lib/gdrive-backup/common.sh
+)
+
+dotfiles link "$REPO_ROOT" "${link_targets[@]}"
+mkdir -p "$MOUNT_POINT" \
+  "${XDG_STATE_HOME:-$HOME/.local/state}/gdrive-backup"
+
+systemctl --user daemon-reload
+
+if [[ "$skip_timer" -eq 0 ]]; then
+  systemctl --user enable --now gdrive-backup.timer
+  printf 'Enabled gdrive-backup.timer (daily ~03:30).\n'
+else
+  printf 'Skipping timer enable (--skip-timer).\n'
+fi
+
+printf '\nNext steps:\n'
+printf '  1. Verify remotes: rclone listremotes && rclone lsd %s:\n' "$GDRIVE_REMOTE"
+printf '  2. Dry-run:     gdrive-backup.sh --dry-run\n'
+printf '  3. First sync:  gdrive-backup.sh\n'
+printf '  4. Browse:      gdrive-backup-mount.sh\n'
+printf 'Docs: %s/README.md\n' "$CONFIG_DIR"

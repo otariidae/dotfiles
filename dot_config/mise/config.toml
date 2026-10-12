@@ -7,6 +7,7 @@ gh = "latest"
 ghq = "latest"
 jj = "latest"
 jq = "latest"
+rclone = "latest"
 node = "lts"
 uv = "latest"
 

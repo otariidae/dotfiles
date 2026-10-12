@@ -1,0 +1,24 @@
+# Non-secret tuning for Google Drive → encrypted NAS backup.
+# Secrets belong in ~/.config/rclone/rclone.conf only.
+
+# rclone remote names (must match rclone listremotes)
+GDRIVE_REMOTE='gdrive'
+NAS_REMOTE='nas'
+CRYPT_REMOTE='nas-crypt'
+
+# Paths inside the crypt remote
+CRYPT_GDRIVE_PATH='gdrive'
+CRYPT_TRASH_PREFIX='gdrive-trash'
+
+# Underlying SMB layout used when creating remotes via setup
+NAS_HOST='as1102t-d5f3.local'
+NAS_USER='kazuki'
+# First path segment is the SMB share name (rclone smb:share/dir).
+NAS_CRYPT_DIR='kazuki/Backups/gdrive-crypt'
+
+# Decrypted browse mount point
+MOUNT_POINT="${HOME}/mnt/gdrive-backup"
+
+# rclone sync tuning
+RCLONE_CHECKERS='4'
+RCLONE_TRANSFERS='4'

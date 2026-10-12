@@ -6,4 +6,4 @@ ConditionPathExists=%h/.config/bt-a2dp-fix/config
 [Service]
 Type=oneshot
 ExecStart=%h/.local/bin/bt-a2dp-fix.sh
-TimeoutStartSec=45
+TimeoutStartSec=90

@@ -17,9 +17,16 @@ connection fails with `Device or resource busy`.
    starts `bt-a2dp-fix.service` for missing or non-A2DP profiles.
 4. The recovery service:
    - exits immediately when the target or fallback profile is active;
-   - selects an already available playback profile;
-   - disconnects the conflicting A2DP Source service and connects A2DP Sink;
+   - when the card is in the wrong direction (`audio-gateway` or A2DP Source),
+     selects an already available playback profile, then disconnects the
+     conflicting A2DP Source service and connects A2DP Sink;
+   - when the card never leaves `off`, waits for live A2DP discovery instead
+     of calling `ConnectProfile` (that call gets no AVDTP Open reply on BlueZ
+     5.72-0ubuntu5.7 and the following reconnect loop drops the earbuds);
    - performs at most one full device reconnect as a fallback.
+5. The monitor ignores further `Connected` signals for 20 seconds after a
+   recovery attempt, so the reconnect inside the fix service cannot start
+   another disconnect cycle.
 
 The recovery service is idempotent and bounded by a systemd timeout.
 
@@ -68,7 +75,9 @@ tests/bt-a2dp-fix-test.sh
 ```
 
 The tests cover healthy connections, targeted Source-to-Sink recovery, the
-single reconnect fallback, bounded failure, and duplicate event suppression.
+single reconnect fallback, a missing profile that must not call
+`ConnectProfile` before that reconnect, bounded failure, and duplicate event
+suppression during the post-recovery cooldown.
 
 ## Removal criteria
 

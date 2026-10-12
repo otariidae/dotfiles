@@ -86,9 +86,10 @@ bt_a2dp_fix_finish_if_healthy() {
 }
 
 bt_a2dp_fix_wait_for_healthy_profile() {
+  local attempts="${1:-10}"
   local _wait
 
-  for _wait in $(seq 1 10); do
+  for _wait in $(seq 1 "$attempts"); do
     if bt_a2dp_fix_finish_if_healthy; then
       return
     fi
@@ -98,25 +99,53 @@ bt_a2dp_fix_wait_for_healthy_profile() {
   return 1
 }
 
-bt_a2dp_fix_log "start (current=$(bt_a2dp_fix_card_profile))"
+# audio-gateway / A2DP Source occupies the shared AVDTP session.
+bt_a2dp_fix_is_wrong_direction() {
+  case "$1" in
+    audio-gateway | a2dp-source | a2dp-source-* | a2dp_source | a2dp_source_*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+bt_a2dp_fix_recover_wrong_direction() {
+  bt_a2dp_fix_set_profile off || true
+  sleep 2
+
+  if bt_a2dp_fix_select_available_profile \
+    && bt_a2dp_fix_wait_for_healthy_profile; then
+    return 0
+  fi
+
+  bt_a2dp_fix_log "replacing A2DP source with sink profile"
+  if bt_a2dp_fix_switch_bluez_to_a2dp_sink \
+    && bt_a2dp_fix_wait_and_select_profile \
+    && bt_a2dp_fix_wait_for_healthy_profile; then
+    return 0
+  fi
+
+  return 1
+}
+
+current="$(bt_a2dp_fix_card_profile)"
+bt_a2dp_fix_log "start (current=${current:-missing})"
 
 if bt_a2dp_fix_finish_if_healthy; then
   exit 0
 fi
 
-bt_a2dp_fix_set_profile off || true
-sleep 2
-
-if bt_a2dp_fix_select_available_profile \
-  && bt_a2dp_fix_wait_for_healthy_profile; then
-  exit 0
-fi
-
-bt_a2dp_fix_log "replacing A2DP source with sink profile"
-if bt_a2dp_fix_switch_bluez_to_a2dp_sink \
-  && bt_a2dp_fix_wait_and_select_profile \
-  && bt_a2dp_fix_wait_for_healthy_profile; then
-  exit 0
+if bt_a2dp_fix_is_wrong_direction "$current"; then
+  if bt_a2dp_fix_recover_wrong_direction; then
+    exit 0
+  fi
+else
+  # BlueZ 5.72-0ubuntu5.7 discards cached remote SEPs
+  # ("Unable to load LastUsed: rseid N not found"). The card stays off, and
+  # ConnectProfile during that discovery gets no AVDTP Open reply, which is
+  # what ends with the earbuds dropping the link. Wait instead.
+  bt_a2dp_fix_log "waiting for A2DP discovery profile=${current:-missing}"
+  if bt_a2dp_fix_wait_for_healthy_profile 30; then
+    exit 0
+  fi
 fi
 
 bt_a2dp_fix_log "A2DP sink unavailable; reconnecting device"
@@ -129,9 +158,12 @@ if bt_a2dp_fix_finish_if_healthy; then
   exit 0
 fi
 
-bt_a2dp_fix_switch_bluez_to_a2dp_sink || true
-if bt_a2dp_fix_wait_and_select_profile \
-  && bt_a2dp_fix_wait_for_healthy_profile; then
+current="$(bt_a2dp_fix_card_profile)"
+if bt_a2dp_fix_is_wrong_direction "$current"; then
+  if bt_a2dp_fix_recover_wrong_direction; then
+    exit 0
+  fi
+elif bt_a2dp_fix_wait_for_healthy_profile 30; then
   exit 0
 fi
 
