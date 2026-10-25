@@ -14,5 +14,10 @@
   "dot_local/bin/gdrive-backup-mount.sh": "~/.local/bin/gdrive-backup-mount.sh",
   "dot_local/bin/gdrive-backup-umount.sh": "~/.local/bin/gdrive-backup-umount.sh",
   "dot_local/lib/bt-a2dp-fix/common.sh": "~/.local/lib/bt-a2dp-fix/common.sh",
-  "dot_local/lib/gdrive-backup/common.sh": "~/.local/lib/gdrive-backup/common.sh"
+  "dot_local/lib/gdrive-backup/common.sh": "~/.local/lib/gdrive-backup/common.sh",
+  "dot_config/environment.d/fcitx5.conf": "~/.config/environment.d/fcitx5.conf",
+  "dot_config/autostart/org.fcitx.Fcitx5.desktop": "~/.config/autostart/org.fcitx.Fcitx5.desktop",
+  "dot_config/fcitx5/profile": "~/.config/fcitx5/profile",
+  "dot_config/fcitx5/config": "~/.config/fcitx5/config",
+  ".xinputrc": "~/.xinputrc"
 }

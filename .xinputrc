@@ -1,0 +1,2 @@
+# im-config(8) — prefer fcitx5
+run_im fcitx5
