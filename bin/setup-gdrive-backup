@@ -215,8 +215,9 @@ else
 fi
 
 printf '\nNext steps:\n'
-printf '  1. Verify remotes: rclone listremotes && rclone lsd %s:\n' "$GDRIVE_REMOTE"
-printf '  2. Dry-run:     gdrive-backup.sh --dry-run\n'
-printf '  3. First sync:  gdrive-backup.sh\n'
-printf '  4. Browse:      gdrive-backup-mount.sh\n'
+printf '  1. Store secrets: bin/gdrive-backup-store-creds\n'
+printf '  2. Verify remotes: rclone listremotes && rclone lsd %s:\n' "$GDRIVE_REMOTE"
+printf '  3. Dry-run:     gdrive-backup.sh --dry-run\n'
+printf '  4. First sync:  gdrive-backup.sh\n'
+printf '  5. Browse:      gdrive-backup-mount.sh\n'
 printf 'Docs: %s/README.md\n' "$CONFIG_DIR"
