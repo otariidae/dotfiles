@@ -1,9 +1,0 @@
-[Unit]
-Description=Fix Bluetooth A2DP profile after reconnect
-After=pipewire.service wireplumber.service
-ConditionPathExists=%h/.config/bt-a2dp-fix/config
-
-[Service]
-Type=oneshot
-ExecStart=%h/.local/bin/bt-a2dp-fix.sh
-TimeoutStartSec=90
