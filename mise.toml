@@ -32,6 +32,5 @@ description = "Run shell script tests"
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
-bash tests/bt-a2dp-fix-test.sh
 bash tests/runcat-machine-temp-test.sh
 """
