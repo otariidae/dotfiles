@@ -56,27 +56,36 @@ gdrive_backup_remote_env_prefix() {
   printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr '-' '_'
 }
 
-gdrive_backup_cred_path() {
+gdrive_backup_encrypted_cred_path() {
   local name="$1"
-  local cred_dir="${CREDENTIALS_DIRECTORY:-}"
-  local store_dir="${XDG_CONFIG_HOME:-$HOME/.config}/credstore"
-
-  if [[ -n "$cred_dir" && -d "$cred_dir" && -f "${cred_dir}/${name}" ]]; then
-    printf '%s\n' "${cred_dir}/${name}"
-  elif [[ -f "${store_dir}/${name}" ]]; then
-    printf '%s\n' "${store_dir}/${name}"
-  fi
+  printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/credstore.encrypted/${name}"
 }
 
-gdrive_backup_read_cred() {
-  local path="$1"
-  local value
-  if [[ -z "$path" || ! -f "$path" ]]; then
+# Read a credential: prefer $CREDENTIALS_DIRECTORY (systemd unit), else decrypt
+# the user-encrypted file with systemd-creds (manual / interactive runs).
+gdrive_backup_read_cred_value() {
+  local name="$1"
+  local cred_dir="${CREDENTIALS_DIRECTORY:-}"
+  local enc_path plain
+
+  if [[ -n "$cred_dir" && -d "$cred_dir" && -f "${cred_dir}/${name}" ]]; then
+    plain="$(<"${cred_dir}/${name}")"
+    plain="${plain//$'\n'/}"
+    printf '%s' "$plain"
+    return 0
+  fi
+
+  enc_path="$(gdrive_backup_encrypted_cred_path "$name")"
+  if [[ ! -f "$enc_path" ]]; then
     return 1
   fi
-  value="$(<"$path")"
-  value="${value//$'\n'/}"
-  printf '%s' "$value"
+  if ! command -v systemd-creds >/dev/null; then
+    gdrive_backup_log "Missing systemd-creds to decrypt ${enc_path}"
+    return 1
+  fi
+  plain="$(systemd-creds decrypt --user "$enc_path" -)"
+  plain="${plain//$'\n'/}"
+  printf '%s' "$plain"
 }
 
 gdrive_backup_export_obscured() {
@@ -87,8 +96,8 @@ gdrive_backup_export_obscured() {
   export "${env_name}=${obscured}"
 }
 
-# Load secrets from systemd $CREDENTIALS_DIRECTORY (or ~/.config/credstore fallback).
-# Files (plaintext, mode 600):
+# Load secrets from systemd $CREDENTIALS_DIRECTORY or encrypted credstore.
+# Names:
 #   gdrive_client_id, gdrive_client_secret
 #   nas_pass
 #   nas_crypt_password, nas_crypt_password2
@@ -98,32 +107,27 @@ gdrive_backup_export_obscured() {
 # match RCLONE_CONFIG_NAS_CRYPT_* (rclone#8668-class issues).
 gdrive_backup_load_systemd_credentials() {
   local gdrive_prefix
-  local path plain
+  local plain
 
   gdrive_prefix="$(gdrive_backup_remote_env_prefix "${GDRIVE_REMOTE:-gdrive}")"
 
-  path="$(gdrive_backup_cred_path gdrive_client_id || true)"
-  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+  if plain="$(gdrive_backup_read_cred_value gdrive_client_id 2>/dev/null)"; then
     export "RCLONE_CONFIG_${gdrive_prefix}_CLIENT_ID=$plain"
   fi
 
-  path="$(gdrive_backup_cred_path gdrive_client_secret || true)"
-  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+  if plain="$(gdrive_backup_read_cred_value gdrive_client_secret 2>/dev/null)"; then
     export "RCLONE_CONFIG_${gdrive_prefix}_CLIENT_SECRET=$plain"
   fi
 
-  path="$(gdrive_backup_cred_path nas_pass || true)"
-  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+  if plain="$(gdrive_backup_read_cred_value nas_pass 2>/dev/null)"; then
     gdrive_backup_export_obscured RCLONE_SMB_PASS "$plain"
   fi
 
-  path="$(gdrive_backup_cred_path nas_crypt_password || true)"
-  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+  if plain="$(gdrive_backup_read_cred_value nas_crypt_password 2>/dev/null)"; then
     gdrive_backup_export_obscured RCLONE_CRYPT_PASSWORD "$plain"
   fi
 
-  path="$(gdrive_backup_cred_path nas_crypt_password2 || true)"
-  if plain="$(gdrive_backup_read_cred "$path" 2>/dev/null)"; then
+  if plain="$(gdrive_backup_read_cred_value nas_crypt_password2 2>/dev/null)"; then
     gdrive_backup_export_obscured RCLONE_CRYPT_PASSWORD2 "$plain"
   fi
 }

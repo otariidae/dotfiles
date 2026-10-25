@@ -56,15 +56,24 @@ Do not browse the backup via the NAS web UI as plaintext.
    bin/setup-gdrive-backup
    ```
 
-2. Ensure rclone remotes `gdrive`, `nas`, and `nas-crypt` exist (OAuth / SMB / crypt). Secrets stay in `~/.config/rclone/rclone.conf` only — never in this repo. Prefer your own Google OAuth client with scope `drive.readonly`.
+2. Store secrets for the systemd user unit (encrypted at rest with
+   `systemd-creds --user` under `~/.config/credstore.encrypted/`):
 
-3. First sync:
+   ```bash
+   bin/gdrive-backup-store-creds
+   ```
+
+3. Ensure rclone remotes `gdrive`, `nas`, and `nas-crypt` exist (OAuth / SMB / crypt).
+   Token material for Drive lives in `~/.config/rclone/rclone.conf`; SMB/crypt
+   passwords and the OAuth client id/secret are injected via systemd credentials.
+   Prefer your own Google OAuth client with scope `drive.readonly`.
+
+4. First sync:
 
    ```bash
    gdrive-backup.sh --dry-run
    gdrive-backup.sh
    ```
-
 ## Operations
 
 | Action | Command |

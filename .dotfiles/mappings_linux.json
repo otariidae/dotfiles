@@ -11,5 +11,9 @@
   "dot_config/autostart/org.fcitx.Fcitx5.desktop": "~/.config/autostart/org.fcitx.Fcitx5.desktop",
   "dot_config/fcitx5/profile": "~/.config/fcitx5/profile",
   "dot_config/fcitx5/config": "~/.config/fcitx5/config",
-  ".xinputrc": "~/.xinputrc"
+  ".xinputrc": "~/.xinputrc",
+  ".editorconfig": "~/.editorconfig",
+  ".vimrc_first.vim": "~/.vimrc_first.vim",
+  ".gvimrc_first.vim": "~/.gvimrc_first.vim",
+  ".shellcheckrc": "~/.shellcheckrc"
 }
